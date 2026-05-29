@@ -1,12 +1,10 @@
 /**
  * Homepage — / (discovery surface)
  *
- * Image-first. A compact hero strip sits above a featured row and the main
- * masonry feed. Content dominates; branding/nav are minimal. Filtering and
- * sorting are driven by URL search params and re-queried server-side.
- *
- * ISR: revalidated on a short interval and on-demand by admin mutations
- * (revalidatePath('/')).
+ * Image-first. A one-line intro sits above a large featured carousel, the
+ * filter bar (sort + categories + models), and the infinite masonry feed.
+ * Content dominates; branding is a single headline. Filtering is driven by URL
+ * search params and re-queried server-side; the grid paginates client-side.
  */
 
 import type { Metadata } from 'next'
@@ -17,12 +15,18 @@ import {
   listFeaturedPrompts,
   type FeedSort,
 } from '@/features/prompts/queries/prompt.queries'
-import { listPublishedCategories } from '@/features/taxonomy/queries/taxonomy.queries'
-import { PromptGrid } from '@/components/prompt/PromptGrid'
-import { DiscoveryFilters } from '@/components/prompt/DiscoveryFilters'
+import {
+  listPublishedCategories,
+  listPublishedModels,
+} from '@/features/taxonomy/queries/taxonomy.queries'
+import { FeaturedCarousel } from '@/components/prompt/FeaturedCarousel'
+import { FilterBar } from '@/components/prompt/FilterBar'
+import { InfinitePromptGrid } from '@/components/prompt/InfinitePromptGrid'
 import { EmptyState } from '@/components/admin/EmptyState'
 
 export const revalidate = 60
+
+const PAGE_SIZE = 24
 
 export const metadata: Metadata = {
   title: { absolute: `${siteConfig.name} — ${siteConfig.tagline}` },
@@ -31,7 +35,7 @@ export const metadata: Metadata = {
 }
 
 interface HomePageProps {
-  searchParams: Promise<{ category?: string; sort?: string }>
+  searchParams: Promise<{ category?: string; model?: string; sort?: string }>
 }
 
 function parseSort(value?: string): FeedSort {
@@ -39,60 +43,75 @@ function parseSort(value?: string): FeedSort {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { category, sort } = await searchParams
+  const { category, model, sort } = await searchParams
   const activeSort = parseSort(sort)
+  const isFiltered = Boolean(category || model)
 
-  const [categories, featured, prompts] = await Promise.all([
+  const [categories, models, featured, firstPage] = await Promise.all([
     listPublishedCategories(),
-    // Featured only shown on the default (unfiltered) view.
-    category ? Promise.resolve([]) : listFeaturedPrompts(10),
-    listPublishedPrompts({ sort: activeSort, categorySlug: category, limit: 60 }),
+    listPublishedModels(),
+    // Featured only on the default, unfiltered view.
+    isFiltered ? Promise.resolve([]) : listFeaturedPrompts(12),
+    listPublishedPrompts({
+      sort: activeSort,
+      categorySlug: category,
+      modelSlug: model,
+      limit: PAGE_SIZE,
+    }),
   ])
 
-  const showFeatured = !category && featured.length > 0
+  const showFeatured = !isFiltered && featured.length > 0
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
-      {/* Compact hero strip */}
-      <section className="mb-8">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F0EBE5] bg-white px-3 py-1 text-xs font-medium text-[#FF6B35]">
-          <Sparkles size={12} className="fill-[#FF6B35]" />
-          Free, curated AI prompts
-        </span>
-        <h1 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">
+      {/* Tiny intro */}
+      <div className="mb-6">
+        <h1 className="text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
           Discover &amp; copy the best AI prompts
         </h1>
-      </section>
+      </div>
 
-      {/* Featured row */}
+      {/* Featured */}
       {showFeatured && (
-        <section className="mb-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#999999]">
-            Featured
-          </h2>
-          <PromptGrid prompts={featured} />
+        <section className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles size={15} className="text-[#FF6B35]" />
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-[#999999]">
+              Featured
+            </h2>
+          </div>
+          <FeaturedCarousel prompts={featured} />
         </section>
       )}
 
-      {/* Filters + main feed */}
-      <section>
-        <div className="mb-5">
-          <DiscoveryFilters
-            categories={categories}
-            activeCategory={category}
-            activeSort={activeSort}
-          />
-        </div>
+      {/* Filters */}
+      <section className="mb-6">
+        <FilterBar
+          categories={categories}
+          models={models}
+          activeSort={activeSort}
+          activeCategory={category}
+          activeModel={model}
+        />
+      </section>
 
-        {prompts.length === 0 ? (
+      {/* Main feed */}
+      <section>
+        {firstPage.length === 0 ? (
           <EmptyState
             icon={Sparkles}
             title="No prompts to show yet"
             description="Published prompts will appear here as soon as they're added."
           />
         ) : (
-          <PromptGrid prompts={prompts} />
+          <InfinitePromptGrid
+            // Re-mount when filters change so the grid re-seeds cleanly.
+            key={`${activeSort}:${category ?? 'all'}:${model ?? 'all'}`}
+            initialPrompts={firstPage}
+            filter={{ sort: activeSort, categorySlug: category, modelSlug: model }}
+            pageSize={PAGE_SIZE}
+          />
         )}
       </section>
     </div>

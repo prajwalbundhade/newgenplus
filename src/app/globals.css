@@ -82,3 +82,7 @@ body {
 ::-webkit-scrollbar-track  { background: transparent; }
 ::-webkit-scrollbar-thumb  { background: var(--color-border-strong); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-accent); }
+
+/* Hidden scrollbar for horizontal filter/carousel rows (still scrollable) */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

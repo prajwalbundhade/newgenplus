@@ -31,6 +31,8 @@ export interface PromptCardVM {
   title: string
   slug: string
   creatorName: string
+  modelName: string | null
+  modelSlug: string | null
   imageUrl: string | null
   blurDataUrl: string | null
   width: number | null
@@ -77,17 +79,28 @@ function pickMedia(value: MediaPick | MediaPick[] | null | undefined): MediaPick
   return Array.isArray(value) ? (value[0] ?? null) : value
 }
 
+type ModelPick = { name: string; slug: string }
+
 type ResourceWithMedia = ResourceRow & {
   resource_media: MediaPick | MediaPick[] | null
+  models: ModelPick | ModelPick[] | null
+}
+
+function pickOne<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null
+  return Array.isArray(value) ? (value[0] ?? null) : value
 }
 
 function toCardVM(row: ResourceWithMedia): PromptCardVM {
   const media = pickMedia(row.resource_media)
+  const model = pickOne<ModelPick>(row.models)
   return {
     id: row.id,
     title: row.title,
     slug: row.slug,
     creatorName: row.creator_name,
+    modelName: model?.name ?? null,
+    modelSlug: model?.slug ?? null,
     imageUrl: media
       ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.storage_path)
       : null,
@@ -103,7 +116,8 @@ function toCardVM(row: ResourceWithMedia): PromptCardVM {
 
 const CARD_SELECT =
   'id, title, slug, creator_name, view_count, copy_count, avg_rating, is_featured, ' +
-  'resource_media(storage_bucket, storage_path, blur_data_url, width, height)'
+  'resource_media(storage_bucket, storage_path, blur_data_url, width, height), ' +
+  'models(name, slug)'
 
 // ---------------------------------------------------------------------------
 // Feed sorts

@@ -1,33 +1,35 @@
 /**
- * PublicHeader — top navigation for the public site.
+ * PublicHeader — sticky top navigation for the public site.
  *
- * Server Component. Static, fast, no client JS. Sticky, light theme,
- * uses brand tokens and the central route/navigation config.
+ * Layout: [logo]  ·  Explore / Search (center, desktop)  ·  [search input] (right).
+ * The search input is always visible, including on mobile, per the
+ * discovery-first product direction.
  */
 
 import Link from 'next/link'
-import { Sparkles, Search } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
 import { primaryNav } from '@/config/navigation'
+import { SearchBar } from '@/components/prompt/SearchBar'
 
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#F0EBE5] bg-[#FFF9F5]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-[#F0EBE5] bg-[#FFF9F5]/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-3 px-4 sm:h-16 sm:gap-6 sm:px-6 lg:px-8">
 
-        {/* Brand */}
-        <Link href={routes.home} className="flex items-center gap-2.5">
+        {/* Left — brand */}
+        <Link href={routes.home} className="flex shrink-0 items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF6B35]">
             <Sparkles size={16} className="text-white" />
           </span>
-          <span className="text-base font-bold tracking-tight text-[#111111]">
+          <span className="hidden text-base font-bold tracking-tight text-[#111111] sm:inline">
             {siteConfig.name}
           </span>
         </Link>
 
-        {/* Primary nav */}
-        <nav className="hidden items-center gap-1 sm:flex">
+        {/* Center — primary nav (desktop) */}
+        <nav className="hidden items-center gap-1 md:flex">
           {primaryNav.map((item) => (
             <Link
               key={item.href}
@@ -39,15 +41,10 @@ export function PublicHeader() {
           ))}
         </nav>
 
-        {/* Search affordance */}
-        <Link
-          href={routes.search()}
-          className="flex items-center gap-2 rounded-lg border border-[#F0EBE5] bg-white px-3 py-2 text-sm text-[#999999] transition-colors hover:border-[#E5DDD6] hover:text-[#666666]"
-          aria-label="Search prompts"
-        >
-          <Search size={15} />
-          <span className="hidden md:inline">Search prompts…</span>
-        </Link>
+        {/* Right — global search (always visible, flexes to fill) */}
+        <div className="ml-auto w-full max-w-md">
+          <SearchBar variant="compact" />
+        </div>
       </div>
     </header>
   )
