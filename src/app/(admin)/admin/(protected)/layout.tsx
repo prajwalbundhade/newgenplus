@@ -1,8 +1,16 @@
 /**
- * Admin layout — server-side authorization gate.
+ * Protected admin layout — server-side authorization gate.
  *
- * This layout wraps ALL /admin/* routes (except /admin/login and the
- * auth callback, which are outside this layout via route grouping).
+ * Lives in the (protected) route group so it ONLY wraps the authenticated
+ * admin pages (/admin, /admin/prompts, /admin/categories, /admin/models,
+ * /admin/reviews, /admin/settings).
+ *
+ * The login route (/admin/login) is a SIBLING of this route group, not a
+ * child, so it is intentionally NOT wrapped by this gate — preventing the
+ * redirect loop that occurs when the gate sits at the /admin level.
+ *
+ * Route groups `(protected)` do not add a URL segment, so all public URLs
+ * remain unchanged (e.g. this still serves /admin, not /admin/protected).
  *
  * It performs the definitive authorization check:
  *   1. Calls getAdminSession() from the DAL (cached per request)

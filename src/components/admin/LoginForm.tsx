@@ -3,19 +3,22 @@
 /**
  * LoginForm — Client Component.
  *
- * Magic-link email login form for the admin console.
+ * Email + password login form for the admin console.
  * Uses useActionState (React 19 / Next.js 16) to handle the server action
- * result and show pending/success/error states.
+ * result and show pending/error states. On success the server action
+ * redirects, so there is no client-side success state.
  */
 
 import { useActionState } from 'react'
-import { loginWithEmail } from '@/features/admin/actions/auth.actions'
+import { Sparkles, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { loginWithPassword } from '@/features/admin/actions/auth.actions'
 import type { LoginState } from '@/features/admin/actions/auth.actions'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  missing_code: 'The login link was invalid or expired. Please try again.',
-  auth_failed: 'Authentication failed. Please request a new login link.',
-  not_authorized: 'This email is not authorised to access the admin console.',
+  auth_failed:    'Authentication failed. Please sign in again.',
+  not_authorized: 'This account is not authorised to access the admin console.',
 }
 
 interface LoginFormProps {
@@ -26,88 +29,127 @@ interface LoginFormProps {
 const initialState: LoginState = { status: 'idle' }
 
 export function LoginForm({ redirectTo, errorCode }: LoginFormProps) {
-  const [state, action, pending] = useActionState(loginWithEmail, initialState)
+  const [state, action, pending] = useActionState(loginWithPassword, initialState)
 
   const urlError = errorCode ? ERROR_MESSAGES[errorCode] : null
 
   return (
-    <div className="w-full max-w-sm">
-      {/* Brand mark */}
-      <div className="mb-8 text-center">
-        <span className="text-2xl font-semibold text-[#FF6B35]">NewGenPlus</span>
-        <p className="mt-1 text-sm text-gray-500">Admin Console</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-[#FFF9F5] px-4">
+      <div className="w-full max-w-[380px]">
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <h1 className="text-lg font-semibold text-[#111111] mb-1">Sign in</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Enter your admin email to receive a magic link.
-        </p>
-
-        {/* URL-level error (from callback redirect) */}
-        {urlError && (
-          <div
-            role="alert"
-            className="mb-4 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700"
-          >
-            {urlError}
+        {/* Brand */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF6B35] shadow-[0_4px_12px_0_rgb(255_107_53/0.3)]">
+            <Sparkles size={22} className="text-white" />
           </div>
-        )}
+          <div className="text-center">
+            <h1 className="text-xl font-bold tracking-tight text-[#111111]">NewGenPlus</h1>
+            <p className="text-sm text-[#999999]">Admin Console</p>
+          </div>
+        </div>
 
-        {/* Success state */}
-        {state.status === 'success' ? (
-          <div
-            role="status"
-            className="rounded-lg bg-green-50 border border-green-100 px-4 py-4 text-sm text-green-700"
-          >
-            <p className="font-medium">Check your email</p>
-            <p className="mt-1 text-green-600">
-              A magic link has been sent. Click it to sign in.
+        {/* Card */}
+        <div className="rounded-2xl border border-[#F0EBE5] bg-white p-8 shadow-[0_4px_24px_0_rgb(0_0_0/0.06)]">
+
+          {/* URL-level error */}
+          {urlError && (
+            <div
+              role="alert"
+              className="mb-5 flex items-start gap-2.5 rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] px-4 py-3"
+            >
+              <AlertCircle size={15} className="mt-0.5 shrink-0 text-[#DC2626]" />
+              <p className="text-sm text-[#DC2626]">{urlError}</p>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-[#111111]">Sign in</h2>
+            <p className="mt-1 text-sm text-[#666666]">
+              Enter your admin email and password to continue.
             </p>
           </div>
-        ) : (
-          <form action={action} noValidate>
-            {/* Hidden field to preserve redirectTo through the action */}
+
+          <form action={action} noValidate className="space-y-4">
             {redirectTo && (
               <input type="hidden" name="redirectTo" value={redirectTo} />
             )}
 
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  Email address
-                </label>
-                <input
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-xs font-medium text-[#666666]">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999999]"
+                />
+                <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
                   placeholder="admin@example.com"
-                  className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-[#111111] placeholder-gray-400 focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 transition"
+                  className="pl-9"
                 />
               </div>
-
-              {/* Action-level error */}
-              {state.status === 'error' && (
-                <p role="alert" className="text-sm text-red-600">
-                  {state.message}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={pending}
-                className="w-full rounded-lg bg-[#FF6B35] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#FF8A4C] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/40 disabled:opacity-60 transition-colors"
-              >
-                {pending ? 'Sending…' : 'Send magic link'}
-              </button>
             </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="text-xs font-medium text-[#666666]">
+                Password
+              </label>
+              <div className="relative">
+                <Lock
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999999]"
+                />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            {state.status === 'error' && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-2.5"
+              >
+                <AlertCircle size={13} className="mt-0.5 shrink-0 text-[#DC2626]" />
+                <p className="text-xs text-[#DC2626]">{state.message}</p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={pending}
+              className="w-full"
+            >
+              {pending ? (
+                'Signing in…'
+              ) : (
+                <>
+                  Sign In
+                  <ArrowRight size={15} />
+                </>
+              )}
+            </Button>
           </form>
-        )}
+        </div>
+
+        <p className="mt-6 text-center text-xs text-[#999999]">
+          Access is restricted to approved admin accounts only.
+        </p>
       </div>
     </div>
   )

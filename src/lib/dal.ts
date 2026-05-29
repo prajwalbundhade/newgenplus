@@ -14,7 +14,7 @@ import 'server-only'
 
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import type { AdminRole, AdminUserRow } from '@/types/database.types'
+import type { AdminRole } from '@/types/database.types'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,9 +23,9 @@ import type { AdminRole, AdminUserRow } from '@/types/database.types'
 export interface AdminSession {
   /** Supabase auth user id */
   userId: string
-  /** Verified email from admin_users allowlist */
+  /** Verified email from the auth session */
   email: string
-  /** Role from admin_users table */
+  /** Role derived from the admin_users allowlist */
   role: AdminRole
 }
 
@@ -34,9 +34,16 @@ export interface AdminSession {
 // ---------------------------------------------------------------------------
 // Verifies the current request has:
 //   1. A valid Supabase auth session
-//   2. An email present in the admin_users allowlist
+//   2. Membership in the admin_users allowlist
 //
 // Returns AdminSession if both checks pass, null otherwise.
+//
+// IMPORTANT: allowlist membership is verified via the is_admin() /
+// is_super_admin() SECURITY DEFINER functions, NOT a direct SELECT on
+// admin_users. A direct read depends on the admin_users SELECT RLS policy
+// (`USING (id = auth.uid())`), which is unreliable in this project's live DB.
+// The SECURITY DEFINER functions check the same condition server-side and are
+// the canonical, RLS-independent way to authorize.
 //
 // Wrapped in React.cache() — called multiple times in the same render tree
 // (layout + page + server actions) but only executes once per request.
@@ -56,31 +63,25 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
       return null
     }
 
-    // 2. Verify the user is in the admin_users allowlist
-    // RLS on admin_users only allows reading own row, so this is safe with
-    // the anon/user client — no service role needed here.
-    //
-    // Note: createServerClient<Database> doesn't propagate generics to .from()
-    // so we explicitly cast the result to the admin_users row type.
-    const result = await supabase
-      .from('admin_users')
-      .select('id,email,role')
-      .eq('id', user.id)
-      .single()
+    // 2. Verify allowlist membership + role via SECURITY DEFINER RPCs.
+    //    Run in parallel — is_admin gates access, is_super_admin sets the tier.
+    const [adminResult, superResult] = await Promise.all([
+      supabase.rpc('is_admin'),
+      supabase.rpc('is_super_admin'),
+    ])
 
-    const { data: adminUser, error: adminError } = result as {
-      data: Pick<AdminUserRow, 'id' | 'email' | 'role'> | null
-      error: typeof result.error
-    }
+    const isAdmin = adminResult.data === true
+    const isSuperAdmin = superResult.data === true
 
-    if (adminError || !adminUser) {
+    if (adminResult.error || !isAdmin) {
       return null
     }
 
     return {
       userId: user.id,
-      email: adminUser.email,
-      role: adminUser.role,
+      // Email comes from the verified auth session, not a table read.
+      email: user.email ?? '',
+      role: isSuperAdmin ? 'super_admin' : 'admin',
     }
   } catch {
     // Never throw from the DAL — return null and let callers decide

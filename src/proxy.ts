@@ -1,25 +1,3 @@
-/**
- * NewGenPlus — Proxy (formerly middleware)
- *
- * In Next.js 16, middleware.ts is deprecated and renamed to proxy.ts.
- * The exported function must be named `proxy` (not `middleware`).
- *
- * Responsibilities:
- *   1. Refresh Supabase auth sessions on every admin request so cookies
- *      stay valid without requiring a page reload.
- *   2. Redirect unauthenticated requests to /admin/login.
- *   3. Redirect authenticated non-admin requests to /admin/login.
- *
- * IMPORTANT: The proxy is a fast-path guard only. It is NOT the sole
- * authorization layer. Every Server Component and Server Function in the
- * admin area re-verifies via the DAL (getAdminSession / requireAdminSession).
- * This defense-in-depth approach is required because:
- *   - The proxy runs on the edge and cannot call the admin_users DB table
- *     without the service role key (which we avoid using on the edge).
- *   - Server Functions are reachable via direct POST requests, bypassing
- *     the proxy entirely (documented in the Next.js 16 proxy guide).
- */
-
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'

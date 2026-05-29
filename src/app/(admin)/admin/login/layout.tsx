@@ -9,9 +9,7 @@ export const metadata = {
 }
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FFF9F5]">
-      {children}
-    </div>
-  )
+  // LoginForm renders its own full-page layout (min-h-screen, centered).
+  // This layout is a transparent pass-through.
+  return <>{children}</>
 }

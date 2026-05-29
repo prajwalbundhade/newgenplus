@@ -4,8 +4,8 @@
  * If the user already has a valid admin session, redirect them to the
  * dashboard immediately — no need to show the login form.
  *
- * Uses magic-link (OTP) email login via Supabase Auth.
- * No password, no public registration.
+ * Uses email + password login via Supabase Auth.
+ * No public registration — accounts are provisioned in Supabase + admin_users.
  */
 
 import { redirect } from 'next/navigation'
