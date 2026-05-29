@@ -75,12 +75,29 @@ export interface ResourceRow {
   model_id: string | null
   tags: string[]
   status: ContentStatus
+  is_featured: boolean
   published_at: string | null
   view_count: number
   copy_count: number
   review_count: number
   avg_rating: number | null
   search_vector: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ResourceMediaRow {
+  id: string
+  resource_id: string
+  storage_path: string
+  storage_bucket: string
+  mime_type: string | null
+  file_size_bytes: number | null
+  width: number | null
+  height: number | null
+  blur_data_url: string | null
+  duration_seconds: number | null
+  thumbnail_path: string | null
   created_at: string
   updated_at: string
 }
@@ -140,6 +157,20 @@ export interface Database {
             columns: ['model_id']
             isOneToOne: false
             referencedRelation: 'models'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      resource_media: {
+        Row: ResourceMediaRow
+        Insert: Omit<ResourceMediaRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ResourceMediaRow, 'id'>>
+        Relationships: [
+          {
+            foreignKeyName: 'resource_media_resource_id_fkey'
+            columns: ['resource_id']
+            isOneToOne: true
+            referencedRelation: 'resources'
             referencedColumns: ['id']
           },
         ]

@@ -1,14 +1,20 @@
 /**
  * Admin prompts management — /admin/prompts
- * Authorization enforced by AdminLayout.
+ * Authorization enforced by the (protected) AdminLayout.
  */
 
-import { Plus, Sparkles, Search } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Plus, Sparkles, Star } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { selectMany } from '@/lib/supabase/query'
+import { publicStorageUrl } from '@/lib/supabase/storage'
+import { routes } from '@/config/routes'
 import { PageHeader } from '@/components/admin/PageHeader'
 import { EmptyState } from '@/components/admin/EmptyState'
+import { PromptRowActions } from '@/components/admin/PromptRowActions'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
   Table,
@@ -28,18 +34,21 @@ export const metadata: Metadata = {
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function getResources(): Promise<ResourceRow[]> {
-  try {
-    const supabase = createAdminClient()
-    const { data } = await supabase
+type MediaThumb = { storage_bucket: string; storage_path: string }
+
+interface PromptListItem extends ResourceRow {
+  resource_media: MediaThumb | MediaThumb[] | null
+}
+
+async function getResources(): Promise<PromptListItem[]> {
+  const supabase = createAdminClient()
+  return selectMany<PromptListItem>(
+    supabase
       .from('resources')
-      .select('*')
+      .select('*, resource_media(storage_bucket, storage_path)')
       .order('created_at', { ascending: false })
-      .limit(50)
-    return (data as ResourceRow[] | null) ?? []
-  } catch {
-    return []
-  }
+      .limit(100)
+  )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -53,10 +62,10 @@ export default async function AdminPromptsPage() {
         title="Prompts"
         description="Manage all AI prompts and resources."
         actions={
-          <Button variant="primary" size="md">
+          <Link href={routes.admin.prompts + '/new'} className={buttonVariants({ variant: 'primary', size: 'md' })}>
             <Plus size={15} />
             New Prompt
-          </Button>
+          </Link>
         }
       />
 
@@ -69,23 +78,18 @@ export default async function AdminPromptsPage() {
             title="No prompts yet"
             description="Create your first AI prompt to get started."
             action={
-              <Button variant="primary" size="md">
+              <Link href={routes.admin.prompts + '/new'} className={buttonVariants({ variant: 'primary', size: 'md' })}>
                 <Plus size={15} />
                 New Prompt
-              </Button>
+              </Link>
             }
           />
         ) : (
-          <div className="rounded-xl border border-[#F0EBE5] bg-white overflow-hidden">
-            {/* Search bar */}
-            <div className="flex items-center gap-3 border-b border-[#F0EBE5] px-4 py-3">
-              <Search size={15} className="shrink-0 text-[#999999]" />
-              <input
-                type="search"
-                placeholder="Search prompts…"
-                className="flex-1 bg-transparent text-sm text-[#111111] placeholder:text-[#999999] focus:outline-none"
-              />
-              <span className="text-xs text-[#999999]">{resources.length} total</span>
+          <div className="overflow-hidden rounded-xl border border-[#F0EBE5] bg-white">
+            <div className="flex items-center justify-between border-b border-[#F0EBE5] px-5 py-3">
+              <span className="text-xs font-medium text-[#999999]">
+                {resources.length} {resources.length === 1 ? 'prompt' : 'prompts'}
+              </span>
             </div>
 
             <Table>
@@ -96,13 +100,12 @@ export default async function AdminPromptsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Views</TableHead>
                   <TableHead className="text-right">Copies</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="w-10" />
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {resources.map((resource) => (
-                  <ResourceRow key={resource.id} resource={resource} />
+                  <PromptTableRow key={resource.id} resource={resource} />
                 ))}
               </TableBody>
             </Table>
@@ -113,15 +116,36 @@ export default async function AdminPromptsPage() {
   )
 }
 
-// ─── Row component ────────────────────────────────────────────────────────────
+// ─── Row ──────────────────────────────────────────────────────────────────────
 
-function ResourceRow({ resource }: { resource: ResourceRow }) {
+function PromptTableRow({ resource }: { resource: PromptListItem }) {
+  const media = Array.isArray(resource.resource_media)
+    ? resource.resource_media[0]
+    : resource.resource_media
+  const thumbUrl = media ? publicStorageUrl(media.storage_bucket, media.storage_path) : null
+
   return (
     <TableRow>
       <TableCell>
-        <div>
-          <p className="font-medium text-[#111111] line-clamp-1">{resource.title}</p>
-          <p className="text-xs text-[#999999] mt-0.5">/{resource.slug}</p>
+        <div className="flex items-center gap-3">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-[#F0EBE5] bg-[#FFF9F5]">
+            {thumbUrl ? (
+              <Image src={thumbUrl} alt="" fill className="object-cover" sizes="44px" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <Sparkles size={14} className="text-[#E5DDD6]" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="line-clamp-1 font-medium text-[#111111]">{resource.title}</p>
+              {resource.is_featured && (
+                <Star size={12} className="shrink-0 fill-[#FF6B35] text-[#FF6B35]" />
+              )}
+            </div>
+            <p className="mt-0.5 truncate text-xs text-[#999999]">/{resource.slug}</p>
+          </div>
         </div>
       </TableCell>
       <TableCell>
@@ -136,19 +160,13 @@ function ResourceRow({ resource }: { resource: ResourceRow }) {
       <TableCell className="text-right tabular-nums text-[#666666]">
         {resource.copy_count.toLocaleString()}
       </TableCell>
-      <TableCell className="text-[#999999]">
-        {formatDate(resource.created_at)}
-      </TableCell>
       <TableCell>
-        <button
-          className="rounded-md p-1.5 text-[#999999] hover:bg-[#FFF9F5] hover:text-[#FF6B35] transition-colors"
-          aria-label={`Edit ${resource.title}`}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </button>
+        <PromptRowActions
+          id={resource.id}
+          title={resource.title}
+          status={resource.status}
+          isFeatured={resource.is_featured}
+        />
       </TableCell>
     </TableRow>
   )
@@ -156,10 +174,10 @@ function ResourceRow({ resource }: { resource: ResourceRow }) {
 
 function ResourceTypeBadge({ type }: { type: ResourceRow['resource_type'] }) {
   const map: Record<ResourceRow['resource_type'], { label: string; variant: 'default' | 'info' | 'secondary' | 'warning' }> = {
-    image:       { label: 'Image',       variant: 'default' },
-    video:       { label: 'Video',       variant: 'info' },
+    image:         { label: 'Image',       variant: 'default' },
+    video:         { label: 'Video',       variant: 'info' },
     'website-kit': { label: 'Website Kit', variant: 'warning' },
-    workflow:    { label: 'Workflow',    variant: 'secondary' },
+    workflow:      { label: 'Workflow',    variant: 'secondary' },
   }
   const { label, variant } = map[type] ?? { label: type, variant: 'secondary' }
   return <Badge variant={variant}>{label}</Badge>
@@ -173,8 +191,4 @@ function StatusBadge({ status }: { status: ResourceRow['status'] }) {
   }
   const { label, variant } = map[status] ?? { label: status, variant: 'secondary' }
   return <Badge variant={variant}>{label}</Badge>
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
 }

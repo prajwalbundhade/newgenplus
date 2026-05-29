@@ -1,14 +1,15 @@
 /**
  * Admin review moderation — /admin/reviews
- * Authorization enforced by AdminLayout.
+ * Authorization enforced by the (protected) AdminLayout.
  */
 
 import { Star, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { selectMany } from '@/lib/supabase/query'
 import { PageHeader } from '@/components/admin/PageHeader'
 import { EmptyState } from '@/components/admin/EmptyState'
+import { ReviewActions } from '@/components/admin/ReviewActions'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { Metadata } from 'next'
 import type { ReviewRow } from '@/types/database.types'
@@ -21,21 +22,18 @@ export const metadata: Metadata = {
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
 interface ReviewWithResource extends ReviewRow {
-  resource_title?: string
+  resources: { title: string; slug: string } | null
 }
 
 async function getReviews(): Promise<ReviewWithResource[]> {
-  try {
-    const supabase = createAdminClient()
-    const { data } = await supabase
+  const supabase = createAdminClient()
+  return selectMany<ReviewWithResource>(
+    supabase
       .from('reviews')
-      .select('*')
+      .select('*, resources(title, slug)')
       .order('created_at', { ascending: false })
-      .limit(100)
-    return (data as ReviewRow[] | null) ?? []
-  } catch {
-    return []
-  }
+      .limit(200)
+  )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -43,7 +41,7 @@ async function getReviews(): Promise<ReviewWithResource[]> {
 export default async function AdminReviewsPage() {
   const reviews = await getReviews()
 
-  const pending  = reviews.filter((r) => r.status === 'pending')
+  const pending = reviews.filter((r) => r.status === 'pending')
   const approved = reviews.filter((r) => r.status === 'approved')
   const rejected = reviews.filter((r) => r.status === 'rejected')
 
@@ -56,31 +54,15 @@ export default async function AdminReviewsPage() {
 
       <Separator />
 
-      <div className="px-8 py-6 space-y-6">
-
-        {/* ── Status tabs summary ── */}
+      <div className="space-y-6 px-8 py-6">
+        {/* Summary */}
         <div className="grid grid-cols-3 gap-4">
-          <ReviewSummaryCard
-            icon={Clock}
-            label="Pending"
-            count={pending.length}
-            color="yellow"
-          />
-          <ReviewSummaryCard
-            icon={CheckCircle}
-            label="Approved"
-            count={approved.length}
-            color="green"
-          />
-          <ReviewSummaryCard
-            icon={XCircle}
-            label="Rejected"
-            count={rejected.length}
-            color="red"
-          />
+          <ReviewSummaryCard icon={Clock} label="Pending" count={pending.length} color="yellow" />
+          <ReviewSummaryCard icon={CheckCircle} label="Approved" count={approved.length} color="green" />
+          <ReviewSummaryCard icon={XCircle} label="Rejected" count={rejected.length} color="red" />
         </div>
 
-        {/* ── Pending queue (priority) ── */}
+        {/* Pending queue */}
         {pending.length > 0 && (
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#111111]">
@@ -96,7 +78,7 @@ export default async function AdminReviewsPage() {
           </section>
         )}
 
-        {/* ── All reviews ── */}
+        {/* All reviews */}
         {reviews.length === 0 ? (
           <EmptyState
             icon={Star}
@@ -106,7 +88,7 @@ export default async function AdminReviewsPage() {
         ) : (
           <section>
             <h2 className="mb-3 text-sm font-semibold text-[#111111]">All Reviews</h2>
-            <div className="rounded-xl border border-[#F0EBE5] bg-white overflow-hidden divide-y divide-[#F0EBE5]">
+            <div className="divide-y divide-[#F0EBE5] overflow-hidden rounded-xl border border-[#F0EBE5] bg-white">
               {reviews.map((review) => (
                 <ReviewListRow key={review.id} review={review} />
               ))}
@@ -148,55 +130,43 @@ function ReviewSummaryCard({ icon: Icon, label, count, color }: ReviewSummaryCar
   )
 }
 
-function ReviewCard({ review }: { review: ReviewRow }) {
+function ReviewCard({ review }: { review: ReviewWithResource }) {
   return (
     <div className="rounded-xl border border-[#F0EBE5] bg-white p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm text-[#111111]">{review.reviewer_name}</span>
-            {review.rating !== null && (
-              <StarRating rating={review.rating} />
-            )}
-            <span className="text-xs text-[#999999]">
-              {new Date(review.created_at).toLocaleDateString('en', {
-                month: 'short', day: 'numeric', year: 'numeric',
-              })}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-[#111111]">{review.reviewer_name}</span>
+            {review.rating !== null && <StarRating rating={review.rating} />}
+            <span className="text-xs text-[#999999]">{formatDate(review.created_at)}</span>
           </div>
-          <p className="mt-2 text-sm text-[#666666] leading-relaxed">{review.body}</p>
+          {review.resources?.title && (
+            <p className="mt-1 text-xs text-[#999999]">on “{review.resources.title}”</p>
+          )}
+          <p className="mt-2 text-sm leading-relaxed text-[#666666]">{review.body}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button variant="secondary" size="sm">
-            <CheckCircle size={13} />
-            Approve
-          </Button>
-          <Button variant="danger" size="sm">
-            <XCircle size={13} />
-            Reject
-          </Button>
-        </div>
+        <ReviewActions id={review.id} status={review.status} />
       </div>
     </div>
   )
 }
 
-function ReviewListRow({ review }: { review: ReviewRow }) {
+function ReviewListRow({ review }: { review: ReviewWithResource }) {
   return (
     <div className="flex items-start gap-4 px-5 py-4">
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-[#111111]">{review.reviewer_name}</span>
           {review.rating !== null && <StarRating rating={review.rating} />}
           <ReviewStatusBadge status={review.status} />
-          <span className="text-xs text-[#999999]">
-            {new Date(review.created_at).toLocaleDateString('en', {
-              month: 'short', day: 'numeric', year: 'numeric',
-            })}
-          </span>
+          <span className="text-xs text-[#999999]">{formatDate(review.created_at)}</span>
         </div>
-        <p className="mt-1 text-sm text-[#666666] line-clamp-2">{review.body}</p>
+        {review.resources?.title && (
+          <p className="mt-0.5 text-xs text-[#999999]">on “{review.resources.title}”</p>
+        )}
+        <p className="mt-1 line-clamp-2 text-sm text-[#666666]">{review.body}</p>
       </div>
+      <ReviewActions id={review.id} status={review.status} compact />
     </div>
   )
 }
@@ -221,6 +191,10 @@ function ReviewStatusBadge({ status }: { status: ReviewRow['status'] }) {
     approved: { label: 'Approved', variant: 'success' },
     rejected: { label: 'Rejected', variant: 'danger' },
   }
-  const { label, variant } = map[status] ?? { label: status, variant: 'warning' }
+  const { label, variant } = map[status]
   return <Badge variant={variant}>{label}</Badge>
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
 }

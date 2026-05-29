@@ -29,6 +29,22 @@ interface SupabaseResult<T> {
 type Thenable<T> = PromiseLike<SupabaseResult<T>>
 
 /**
+ * Cast a write payload to the loose shape the @supabase/ssr query builder
+ * expects when its Database generic fails to propagate (insert/update args
+ * otherwise infer as `never`). Use at the `.insert()` / `.update()` call site:
+ *
+ *   supabase.from('resources').insert(writePayload({ title, slug, ... }))
+ *
+ * The payload is still type-checked at the call site against your own typed
+ * object literal; this only relaxes the builder's broken `never` parameter.
+ */
+export function writePayload<T extends Record<string, unknown>>(
+  payload: T
+): never {
+  return payload as unknown as never
+}
+
+/**
  * Run a query expected to return multiple rows.
  * Returns `Row[]` (empty array when there is no data).
  * Throws if the query returns a database error.
