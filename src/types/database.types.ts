@@ -79,6 +79,7 @@ export interface ResourceRow {
   published_at: string | null
   view_count: number
   copy_count: number
+  like_count: number
   review_count: number
   avg_rating: number | null
   search_vector: string | null
@@ -216,6 +217,21 @@ export interface Database {
           p_session_id?: string
           p_ip_hash?: string
           p_country_code?: string
+        }
+        Returns: void
+      }
+      increment_like_count: {
+        Args: {
+          p_resource_id: string
+          p_session_id?: string
+          p_ip_hash?: string
+          p_country_code?: string
+        }
+        Returns: void
+      }
+      decrement_like_count: {
+        Args: {
+          p_resource_id: string
         }
         Returns: void
       }

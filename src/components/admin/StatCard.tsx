@@ -15,7 +15,7 @@ interface StatCardProps {
   value: number
   icon: LucideIcon
   /** Colour theme for the icon background */
-  iconColor?: 'orange' | 'blue' | 'green' | 'yellow' | 'purple'
+  iconColor?: 'orange' | 'blue' | 'green' | 'yellow' | 'purple' | 'pink'
   /** Optional trend: positive = up, negative = down, zero = flat */
   trend?: number
   trendLabel?: string
@@ -28,6 +28,7 @@ const iconColorMap: Record<NonNullable<StatCardProps['iconColor']>, string> = {
   green:  'bg-[#F0FDF4] text-[#16A34A]',
   yellow: 'bg-[#FFFBEB] text-[#D97706]',
   purple: 'bg-[#F5F3FF] text-[#7C3AED]',
+  pink:   'bg-[#FEF2F4] text-[#E11D6B]',
 }
 
 export function StatCard({

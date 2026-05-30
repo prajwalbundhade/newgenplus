@@ -9,9 +9,11 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Copy, Eye, Sparkles } from 'lucide-react'
+import { Copy, Eye, Heart, Sparkles } from 'lucide-react'
 import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
+import { LikeButton } from './LikeButton'
+import { ModelIcon } from './ModelIcon'
 import type { PromptCardVM } from '@/features/prompts/queries/prompt.queries'
 
 export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM; priority?: boolean }) {
@@ -54,6 +56,10 @@ export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM;
             <Eye size={12} />
             {formatCount(prompt.viewCount)}
           </span>
+          <span className="flex items-center gap-1 text-xs font-semibold">
+            <Heart size={12} />
+            {formatCount(prompt.likeCount)}
+          </span>
         </div>
       </div>
 
@@ -61,8 +67,11 @@ export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM;
       <div className="p-3">
         <h3 className="line-clamp-1 text-sm font-medium text-[#111111]">{prompt.title}</h3>
         <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="truncate text-xs text-[#999999]">
-            {prompt.modelName ?? prompt.creatorName}
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-[#999999]">
+            {prompt.modelName && (
+              <ModelIcon name={prompt.modelName} slug={prompt.modelSlug ?? undefined} size="sm" />
+            )}
+            <span className="truncate">{prompt.modelName ?? prompt.creatorName}</span>
           </span>
           <span className="flex shrink-0 items-center gap-2 text-xs text-[#999999]">
             <span className="flex items-center gap-0.5">
@@ -73,6 +82,7 @@ export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM;
               <Eye size={11} />
               {formatCount(prompt.viewCount)}
             </span>
+            <LikeButton resourceId={prompt.id} initialCount={prompt.likeCount} variant="inline" />
           </span>
         </div>
       </div>

@@ -10,7 +10,7 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, Copy, Eye, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Copy, Eye, Heart, Sparkles } from 'lucide-react'
 import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
 import type { PromptCardVM } from '@/features/prompts/queries/prompt.queries'
@@ -93,6 +93,10 @@ function FeaturedCard({ prompt, priority }: { prompt: PromptCardVM; priority: bo
           <span className="flex items-center gap-1">
             <Eye size={11} />
             {formatCount(prompt.viewCount)}
+          </span>
+          <span className="flex items-center gap-1">
+            <Heart size={11} />
+            {formatCount(prompt.likeCount)}
           </span>
         </div>
       </div>

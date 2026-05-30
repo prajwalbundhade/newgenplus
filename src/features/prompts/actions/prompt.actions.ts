@@ -44,8 +44,10 @@ function formToObject(formData: FormData): Record<string, unknown> {
     prompt_text: formData.get('prompt_text') ?? undefined,
     creator_name: formData.get('creator_name') || undefined,
     resource_type: formData.get('resource_type') || undefined,
-    category_id: (formData.get('category_id') as string) || null,
-    model_id: (formData.get('model_id') as string) || null,
+    // Empty select → empty string, which fails the required check with a
+    // proper "Category/Model is required." message.
+    category_id: (formData.get('category_id') as string) ?? '',
+    model_id: (formData.get('model_id') as string) ?? '',
     tags: (formData.get('tags') as string) ?? '',
     status: formData.get('status') || undefined,
     is_featured: formData.get('is_featured') === 'on' || formData.get('is_featured') === 'true',

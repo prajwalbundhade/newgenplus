@@ -15,6 +15,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { ModelIcon } from '@/components/prompt/ModelIcon'
 import type { TaxonomyItem } from '@/features/taxonomy/queries/taxonomy.queries'
 import type { FeedSort } from '@/features/prompts/queries/prompt.queries'
 
@@ -102,6 +103,7 @@ export function FilterBar({
               active={activeModel === m.slug}
               onClick={() => setParam('model', m.slug)}
               muted
+              icon={<ModelIcon name={m.name} slug={m.slug} size="sm" />}
             />
           ))}
         </ChipRow>
@@ -127,18 +129,21 @@ function Chip({
   active,
   onClick,
   muted = false,
+  icon,
 }: {
   label: string
   active: boolean
   onClick: () => void
   muted?: boolean
+  icon?: React.ReactNode
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+        'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 text-sm font-medium transition-colors',
+        icon ? 'pl-1.5 pr-3.5' : 'px-3.5',
         active
           ? 'bg-[#FF6B35] text-white'
           : muted
@@ -146,6 +151,7 @@ function Chip({
             : 'bg-white text-[#666666] border border-[#F0EBE5] hover:border-[#FFB26B] hover:text-[#111111]'
       )}
     >
+      {icon}
       {label}
     </button>
   )

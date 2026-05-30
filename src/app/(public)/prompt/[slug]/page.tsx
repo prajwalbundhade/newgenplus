@@ -9,7 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { Eye, Copy, Star, Tag as TagIcon, Cpu } from 'lucide-react'
+import { Eye, Copy, Star, Tag as TagIcon, Heart } from 'lucide-react'
 import {
   getPromptBySlug,
   listPublishedSlugs,
@@ -20,8 +20,10 @@ import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
 import { CopyButton } from '@/components/prompt/CopyButton'
+import { LikeButton } from '@/components/prompt/LikeButton'
 import { ViewTracker } from '@/components/prompt/ViewTracker'
 import { PromptGrid } from '@/components/prompt/PromptGrid'
+import { ModelIcon } from '@/components/prompt/ModelIcon'
 import { Badge } from '@/components/ui/badge'
 
 export const revalidate = 300
@@ -113,6 +115,10 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
               <Copy size={15} className="text-[#999999]" />
               {formatCount(prompt.copyCount)} copies
             </span>
+            <span className="flex items-center gap-1.5">
+              <Heart size={15} className="text-[#999999]" />
+              {formatCount(prompt.likeCount)} likes
+            </span>
             {prompt.avgRating !== null && (
               <span className="flex items-center gap-1.5">
                 <Star size={15} className="fill-[#FFB26B] text-[#FFB26B]" />
@@ -132,8 +138,13 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
                   {prompt.promptText}
                 </p>
               </div>
-              <div className="mt-3">
-                <CopyButton resourceId={prompt.id} text={prompt.promptText} className="w-full" />
+              <div className="mt-3 flex items-center gap-2">
+                <CopyButton resourceId={prompt.id} text={prompt.promptText} className="flex-1" />
+                <LikeButton
+                  resourceId={prompt.id}
+                  initialCount={prompt.likeCount}
+                  variant="button"
+                />
               </div>
             </div>
           )}
@@ -154,11 +165,11 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
               </Link>
             )}
             {prompt.model && (
-              <Link href={routes.model(prompt.model.slug)}>
-                <Badge variant="info" className="gap-1">
-                  <Cpu size={11} />
+              <Link href={routes.model(prompt.model.slug)} className="inline-flex">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F0EBE5] bg-white py-0.5 pl-0.5 pr-2.5 text-xs font-medium text-[#666666] transition-colors hover:border-[#FFB26B] hover:text-[#111111]">
+                  <ModelIcon name={prompt.model.name} slug={prompt.model.slug} size="sm" />
                   {prompt.model.name}
-                </Badge>
+                </span>
               </Link>
             )}
           </div>

@@ -133,7 +133,7 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
         {/* ── Left: content fields ── */}
         <div className="space-y-5">
-          <Field label="Title" error={fieldErrors.title}>
+          <Field label="Title" error={fieldErrors.title} required>
             <Input
               name="title"
               defaultValue={resource?.title}
@@ -142,7 +142,7 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
             />
           </Field>
 
-          <Field label="Prompt text" error={fieldErrors.prompt_text} hint="The copyable content shown to users.">
+          <Field label="Prompt text" error={fieldErrors.prompt_text} hint="The copyable content shown to users." required>
             <Textarea
               name="prompt_text"
               defaultValue={resource?.prompt_text ?? ''}
@@ -162,18 +162,18 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
           </Field>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Category">
-              <Select name="category_id" defaultValue={resource?.category_id ?? ''}>
-                <option value="">— None —</option>
+            <Field label="Category" error={fieldErrors.category_id} required>
+              <Select name="category_id" defaultValue={resource?.category_id ?? ''} required>
+                <option value="">Select a category…</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </Select>
             </Field>
 
-            <Field label="Model">
-              <Select name="model_id" defaultValue={resource?.model_id ?? ''}>
-                <option value="">— None —</option>
+            <Field label="Model" error={fieldErrors.model_id} required>
+              <Select name="model_id" defaultValue={resource?.model_id ?? ''} required>
+                <option value="">Select a model…</option>
                 {models.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
@@ -293,16 +293,21 @@ function Field({
   label,
   hint,
   error,
+  required,
   children,
 }: {
   label: string
   hint?: string
   error?: string
+  required?: boolean
   children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <Label>{label}</Label>
+      <Label>
+        {label}
+        {required && <span className="ml-0.5 text-[#FF6B35]">*</span>}
+      </Label>
       {children}
       {hint && !error && <p className="text-xs text-[#999999]">{hint}</p>}
       {error && <p className="text-xs text-[#DC2626]">{error}</p>}

@@ -8,7 +8,7 @@
  * getAdminSession() is cached — no extra DB call (layout already called it).
  */
 
-import { Sparkles, Eye, Copy, Star, TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { Sparkles, Eye, Copy, Star, TrendingUp, Clock, CheckCircle, Heart } from 'lucide-react'
 import { getAdminSession } from '@/lib/dal'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { StatCard } from '@/components/admin/StatCard'
@@ -30,6 +30,7 @@ interface DashboardStats {
   publishedResources: number
   totalViews: number
   totalCopies: number
+  totalLikes: number
   pendingReviews: number
   approvedReviews: number
 }
@@ -41,7 +42,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
     const [resourcesResult, , reviewsResult] = await Promise.all([
       supabase
         .from('resources')
-        .select('status, view_count, copy_count'),
+        .select('status, view_count, copy_count, like_count'),
       supabase
         .from('resources')
         .select('view_count, copy_count'),
@@ -50,23 +51,25 @@ async function getDashboardStats(): Promise<DashboardStats> {
         .select('status'),
     ])
 
-    const resources = (resourcesResult.data as Pick<ResourceRow, 'status' | 'view_count' | 'copy_count'>[] | null) ?? []
+    const resources = (resourcesResult.data as Pick<ResourceRow, 'status' | 'view_count' | 'copy_count' | 'like_count'>[] | null) ?? []
     const reviews = (reviewsResult.data as Pick<ReviewRow, 'status'>[] | null) ?? []
 
     const totalResources = resources.length
     const publishedResources = resources.filter((r) => r.status === 'published').length
     const totalViews = resources.reduce((sum, r) => sum + (r.view_count ?? 0), 0)
     const totalCopies = resources.reduce((sum, r) => sum + (r.copy_count ?? 0), 0)
+    const totalLikes = resources.reduce((sum, r) => sum + (r.like_count ?? 0), 0)
     const pendingReviews = reviews.filter((r) => r.status === 'pending').length
     const approvedReviews = reviews.filter((r) => r.status === 'approved').length
 
-    return { totalResources, publishedResources, totalViews, totalCopies, pendingReviews, approvedReviews }
+    return { totalResources, publishedResources, totalViews, totalCopies, totalLikes, pendingReviews, approvedReviews }
   } catch {
     return {
       totalResources: 0,
       publishedResources: 0,
       totalViews: 0,
       totalCopies: 0,
+      totalLikes: 0,
       pendingReviews: 0,
       approvedReviews: 0,
     }
@@ -99,7 +102,7 @@ export default async function AdminDashboardPage() {
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#999999]">
             Overview
           </h2>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
             <StatCard
               label="Total Resources"
               value={stats.totalResources}
@@ -117,6 +120,12 @@ export default async function AdminDashboardPage() {
               value={stats.totalCopies}
               icon={Copy}
               iconColor="green"
+            />
+            <StatCard
+              label="Total Likes"
+              value={stats.totalLikes}
+              icon={Heart}
+              iconColor="pink"
             />
             <StatCard
               label="Pending Reviews"

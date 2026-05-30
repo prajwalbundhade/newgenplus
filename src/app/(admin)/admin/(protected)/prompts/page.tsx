@@ -100,6 +100,7 @@ export default async function AdminPromptsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Views</TableHead>
                   <TableHead className="text-right">Copies</TableHead>
+                  <TableHead className="text-right">Likes</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -159,6 +160,9 @@ function PromptTableRow({ resource }: { resource: PromptListItem }) {
       </TableCell>
       <TableCell className="text-right tabular-nums text-[#666666]">
         {resource.copy_count.toLocaleString()}
+      </TableCell>
+      <TableCell className="text-right tabular-nums text-[#666666]">
+        {(resource.like_count ?? 0).toLocaleString()}
       </TableCell>
       <TableCell>
         <PromptRowActions
