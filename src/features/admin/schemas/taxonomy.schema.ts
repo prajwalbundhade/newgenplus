@@ -33,10 +33,26 @@ export const CategoryUpdateSchema = CategoryCreateSchema.partial().extend({
   id: uuidLike,
 })
 
+/**
+ * `logo_path` is stored as a base64 data URL (e.g. `data:image/png;base64,…`).
+ * We accept the standard image mime types and cap the encoded size so a
+ * pathological upload can't blow past the 5 MB server-action body limit.
+ */
+const LOGO_MAX_CHARS = 4 * 1024 * 1024 // ~4 MB of base64 text
+const LogoDataUrl = z
+  .string()
+  .regex(
+    /^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/,
+    'Logo must be an image data URL.'
+  )
+  .max(LOGO_MAX_CHARS, 'Logo image is too large.')
+
 export const ModelCreateSchema = z.object({
   name: z.string().trim().min(1, 'Name is required.').max(100),
   description: z.string().trim().max(1000).optional().or(z.literal('')),
   provider: z.string().trim().max(100).optional().or(z.literal('')),
+  /** Empty string means "clear the logo"; absent means "leave unchanged". */
+  logo_path: LogoDataUrl.optional().or(z.literal('')),
   status: z.enum(STATUSES).default('published'),
 })
 
