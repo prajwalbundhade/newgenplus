@@ -162,11 +162,12 @@ export async function listPublishedPrompts(options: ListOptions = {}): Promise<P
 
   // Sort
   if (sort === 'trending') {
-    query = query.order('copy_count', { ascending: false }).order('view_count', { ascending: false })
+    query = query.order('published_at', { ascending: false })        // Newest
   } else if (sort === 'top') {
-    query = query.order('avg_rating', { ascending: false, nullsFirst: false })
+    query = query.order('like_count', { ascending: false })          // Popular
   } else {
-    query = query.order('published_at', { ascending: false })
+    query = query.order('is_featured', { ascending: false })         // Featured
+      .order('published_at', { ascending: false })
   }
 
   query = query.range(offset, offset + limit - 1)

@@ -30,6 +30,11 @@ function formToObject(formData: FormData) {
     name: formData.get('name') ?? undefined,
     description: formData.get('description') ?? undefined,
     provider: formData.get('provider') ?? undefined,
+    // logo_path is sent as a base64 data URL by the client.
+    // - missing entry  → undefined (leave unchanged on update)
+    // - empty string   → '' (clear logo on update)
+    // - data URL       → set logo
+    logo_path: formData.has('logo_path') ? formData.get('logo_path') ?? '' : undefined,
     status: formData.get('status') || undefined,
   }
 }
@@ -63,6 +68,7 @@ export async function createModel(
             slug: uniqueSlug(input.name),
             description: input.description || null,
             provider: input.provider || null,
+            logo_path: input.logo_path || null,
             status: input.status,
           })
         )
@@ -96,6 +102,7 @@ export async function updateModel(
     ...(fields.name !== undefined && { name: fields.name }),
     ...(fields.description !== undefined && { description: fields.description || null }),
     ...(fields.provider !== undefined && { provider: fields.provider || null }),
+    ...(fields.logo_path !== undefined && { logo_path: fields.logo_path || null }),
     ...(fields.status !== undefined && { status: fields.status }),
   }
 

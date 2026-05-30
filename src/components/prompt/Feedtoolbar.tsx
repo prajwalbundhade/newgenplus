@@ -24,7 +24,7 @@ interface FeedToolbarProps {
 }
 
 const SORTS = [
-  { key: 'recent', label: 'Featured' },
+  { key: 'recent', label: 'Trending' },
   { key: 'trending', label: 'Newest' },
   { key: 'top', label: 'Popular' },
 ]
