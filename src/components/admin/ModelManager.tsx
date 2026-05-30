@@ -7,7 +7,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, Trash2, Loader2, AlertCircle, Cpu } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import {
   createModel,
   updateModel,
@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ModelIcon } from '@/components/prompt/ModelIcon'
 import {
   Table,
   TableBody,
@@ -110,9 +111,7 @@ export function ModelManager({ models }: ModelManagerProps) {
               <TableRow key={model.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#F0EBE5] bg-[#FFF9F5]">
-                      <Cpu size={14} className="text-[#999999]" />
-                    </div>
+                    <ModelIcon name={model.name} slug={model.slug} provider={model.provider} size="md" />
                     <div>
                       <p className="font-medium text-[#111111]">{model.name}</p>
                       {model.description && (

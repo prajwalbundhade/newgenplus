@@ -39,6 +39,7 @@ export interface PromptCardVM {
   height: number | null
   viewCount: number
   copyCount: number
+  likeCount: number
   avgRating: number | null
   isFeatured: boolean
 }
@@ -109,13 +110,14 @@ function toCardVM(row: ResourceWithMedia): PromptCardVM {
     height: media?.height ?? null,
     viewCount: row.view_count,
     copyCount: row.copy_count,
+    likeCount: row.like_count ?? 0,
     avgRating: row.avg_rating,
     isFeatured: row.is_featured,
   }
 }
 
 const CARD_SELECT =
-  'id, title, slug, creator_name, view_count, copy_count, avg_rating, is_featured, ' +
+  'id, title, slug, creator_name, view_count, copy_count, like_count, avg_rating, is_featured, ' +
   'resource_media(storage_bucket, storage_path, blur_data_url, width, height), ' +
   'models(name, slug)'
 

@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ModelIcon } from '@/components/prompt/ModelIcon'
 import type { TaxonomyItem } from '@/features/taxonomy/queries/taxonomy.queries'
 import type { FeedSort } from '@/features/prompts/queries/prompt.queries'
 
@@ -197,12 +198,16 @@ function FilterPanelContent({
 
       {/* Models */}
       {models.length > 0 && (
-        <FilterSection title="AI Model">
-          <div className="flex flex-col gap-1">
-            <ChipButton
-              label="All models"
-              active={!activeModel}
-              onClick={() => setParam('model', null)}
+        <ChipRow ariaLabel="AI models">
+          <Chip label="All models" active={!activeModel} onClick={() => setParam('model', null)} muted />
+          {models.map((m) => (
+            <Chip
+              key={m.id}
+              label={m.name}
+              active={activeModel === m.slug}
+              onClick={() => setParam('model', m.slug)}
+              muted
+              icon={<ModelIcon name={m.name} slug={m.slug} size="sm" />}
             />
             {models.map((m) => (
               <ChipButton
@@ -248,22 +253,28 @@ function ChipButton({
   label,
   active,
   onClick,
+  muted = false,
+  icon,
 }: {
   label: string
   active: boolean
   onClick: () => void
+  muted?: boolean
+  icon?: React.ReactNode
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-lg px-3 py-2 text-xs font-medium transition-colors text-left',
+        'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 text-sm font-medium transition-colors',
+        icon ? 'pl-1.5 pr-3.5' : 'px-3.5',
         active
           ? 'bg-black text-white'
           : 'text-[#333333] hover:bg-[#F5F0EB]'
       )}
     >
+      {icon}
       {label}
     </button>
   )

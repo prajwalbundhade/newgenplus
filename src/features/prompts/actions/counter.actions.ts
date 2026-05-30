@@ -39,3 +39,26 @@ export async function incrementCopy(resourceId: string, sessionId?: string): Pro
     // Best-effort.
   }
 }
+
+export async function likePrompt(resourceId: string, sessionId?: string): Promise<void> {
+  if (!resourceId) return
+  try {
+    const supabase = createAdminClient()
+    await supabase.rpc(
+      'increment_like_count',
+      writePayload({ p_resource_id: resourceId, p_session_id: sessionId })
+    )
+  } catch {
+    // Best-effort.
+  }
+}
+
+export async function unlikePrompt(resourceId: string): Promise<void> {
+  if (!resourceId) return
+  try {
+    const supabase = createAdminClient()
+    await supabase.rpc('decrement_like_count', writePayload({ p_resource_id: resourceId }))
+  } catch {
+    // Best-effort.
+  }
+}
