@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ModelIcon } from '@/components/prompt/ModelIcon'
+import { ModelIcon, hasBrandedLogo } from '@/components/prompt/ModelIcon'
 import type { TaxonomyItem } from '@/features/taxonomy/queries/taxonomy.queries'
 import type { FeedSort } from '@/features/prompts/queries/prompt.queries'
 
@@ -83,7 +83,7 @@ export function FilterSidebar({
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────────────── */}
       <aside className="hidden lg:flex lg:flex-col w-56 xl:w-60 shrink-0">
         <div className="sticky top-20 rounded-xl border border-[#E8E3DE] bg-white p-5 shadow-sm">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-black">
+          <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-black">
             Filters
           </p>
           {filterContent}
@@ -95,7 +95,7 @@ export function FilterSidebar({
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="pointer-events-auto flex items-center gap-2 rounded-full bg-black px-5 py-3 text-xs font-semibold text-white shadow-lg active:scale-95 transition-transform"
+          className="pointer-events-auto flex items-center gap-2 rounded-full bg-black px-5 py-3 text-[10px] font-semibold text-white shadow-lg active:scale-95 transition-transform"
         >
           <SlidersHorizontal size={15} />
           Filters
@@ -206,14 +206,22 @@ function FilterPanelContent({
               onClick={() => setParam('model', null)}
             />
 
-            {models.map((m) => (
-              <ChipButton
-                key={m.id}
-                label={m.name}
-                active={activeModel === m.slug}
-                onClick={() => setParam('model', m.slug)}
-              />
-            ))}
+            {models.map((m) => {
+              const hasLogo = hasBrandedLogo(m.name, m.slug, undefined, m.logo_path)
+              return (
+                <ChipButton
+                  key={m.id}
+                  label={m.name}
+                  active={activeModel === m.slug}
+                  onClick={() => setParam('model', m.slug)}
+                  icon={
+                    hasLogo ? (
+                      <ModelIcon name={m.name} slug={m.slug} logo_path={m.logo_path} size="sm" />
+                    ) : undefined
+                  }
+                />
+              )
+            })}
           </div>
         </FilterSection>
       )}
@@ -264,7 +272,7 @@ function ChipButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 text-sm font-medium transition-colors',
+        'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 text-[10px] font-medium transition-colors',
         icon ? 'pl-1.5 pr-3.5' : 'px-3.5',
         active
           ? 'bg-black text-white'

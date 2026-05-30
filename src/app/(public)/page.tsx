@@ -63,14 +63,11 @@ export default async function HomePage({ searchParams }) {
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
       {/* Intro */}
-      <div className="mb-6">
-        <h1 className="text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
+      {/* Intro + Promo banners — shared white card */}
+      <section className="mb-8 rounded-3xl border border-[#E8E3DE] bg-white px-4 pt-4 pb-5 sm:px-5 shadow-sm">
+        <h1 className="mb-4 text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
           Discover &amp; copy the best AI prompts
         </h1>
-      </div>
-
-      {/* Promo banners */}
-      <section className="mb-8">
         <PromoBanners />
       </section>
 

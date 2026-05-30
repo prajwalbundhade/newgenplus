@@ -92,6 +92,18 @@ function resolveVisual(name: string, slug?: string, provider?: string | null): M
   }
 }
 
+/** Returns true when the model maps to a named/branded visual rule. */
+export function hasBrandedLogo(
+  name: string,
+  slug?: string,
+  provider?: string | null,
+  logo_path?: string | null   // ← add
+): boolean {
+  if (logo_path) return true  // ← always show icon if DB has a logo
+  const haystack = `${name} ${slug ?? ''} ${provider ?? ''}`
+  return RULES.some((rule) => rule.match.test(haystack))
+}
+
 const SIZE: Record<NonNullable<ModelIconProps['size']>, { box: string; text: string; glyph: number }> = {
   sm: { box: 'h-5 w-5 rounded-md', text: 'text-[9px]', glyph: 12 },
   md: { box: 'h-8 w-8 rounded-lg', text: 'text-xs', glyph: 18 },
@@ -102,14 +114,40 @@ interface ModelIconProps {
   name: string
   slug?: string
   provider?: string | null
+  logo_path?: string | null
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }
 
-export function ModelIcon({ name, slug, provider, size = 'md', className }: ModelIconProps) {
+interface ModelIconProps {
+  name: string
+  slug?: string
+  provider?: string | null
+  logo_path?: string | null   // ← add this
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}
+
+export function ModelIcon({ name, slug, provider, logo_path, size = 'md', className }: ModelIconProps) {
   const visual = resolveVisual(name, slug, provider)
   const dims = SIZE[size]
 
+  // If we have a real logo from the DB, render it directly
+  if (logo_path) {
+    return (
+      <span
+        className={cn(
+          'inline-flex shrink-0 items-center justify-center overflow-hidden',
+          dims.box,
+          className
+        )}
+      >
+        <img src={logo_path} alt={name} className="h-full w-full object-contain" />
+      </span>
+    )
+  }
+
+  // fallback to gradient + monogram/glyph
   return (
     <span
       className={cn(

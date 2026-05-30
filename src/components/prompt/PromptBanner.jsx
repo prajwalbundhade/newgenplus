@@ -52,10 +52,10 @@ const themes = {
         border: 'border-transparent',
     },
     white: {
-        wrapper: 'bg-white text-black',
+        wrapper: 'bg-[#F5F0EB] text-black',  // warm cream instead of pure white
         eyebrow: 'text-[#999]',
         body: 'text-[#555]',
-        icon: 'bg-[#F5F0EB] text-black',
+        icon: 'bg-white text-black',           // icon bg flipped to white for contrast
         cta: 'bg-black text-white hover:bg-[#222]',
         border: 'border-[#E8E3DE]',
     },

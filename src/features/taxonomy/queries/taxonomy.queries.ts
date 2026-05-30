@@ -12,6 +12,7 @@ export interface TaxonomyItem {
   id: string
   name: string
   slug: string
+  logo_path?: string | null
 }
 
 export async function listPublishedCategories(): Promise<TaxonomyItem[]> {
@@ -30,7 +31,7 @@ export async function listPublishedModels(): Promise<TaxonomyItem[]> {
   return trySelectMany<TaxonomyItem>(
     supabase
       .from('models')
-      .select('id, name, slug')
+      .select('id, name, slug, logo_path')
       .eq('status', 'published')
       .order('name', { ascending: true })
   )

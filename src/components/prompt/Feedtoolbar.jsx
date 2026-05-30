@@ -11,8 +11,8 @@
  */
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { ModelIcon, hasBrandedLogo } from '@/components/prompt/ModelIcon'
 
 const SORTS = [
     { key: 'recent', label: 'Featured' },
@@ -98,18 +98,25 @@ export function FeedToolbar({ topModels = [], activeModel, activeSort, }) {
 
 /* ── Model chip with logo ───────────────────────────────────────────────── */
 function ModelChip({ model, active, onClick }) {
+    const hasLogo = hasBrandedLogo(model.name, model.slug, model.provider, model.logo_path)
+
     return (
         <button
             type="button"
             onClick={onClick}
             className={cn(
-                'flex items-center gap-1.5 h-8 px-3 rounded-full border text-sm font-medium transition-colors',
+                'flex items-center gap-1.5 h-8 rounded-full border text-sm font-medium transition-colors',
+                hasLogo ? 'pl-1.5 pr-3.5' : 'px-3.5',
                 active
                     ? 'bg-black text-white border-black'
                     : 'bg-white text-[#333] border-[#E8E3DE] hover:border-[#999]'
             )}
         >
-            <ModelLogo model={model} active={active} />
+            {hasLogo && (
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md overflow-hidden">
+                    <ModelIcon name={model.name} slug={model.slug} provider={model.provider} logo_path={model.logo_path} size="sm" />
+                </span>
+            )}
             <span>{model.name}</span>
             {model.isNew && (
                 <span className="ml-0.5 text-[10px] font-bold text-[#FF6B35] uppercase tracking-wide">
@@ -117,33 +124,5 @@ function ModelChip({ model, active, onClick }) {
                 </span>
             )}
         </button>
-    )
-}
-
-function ModelLogo({ model, active }) {
-    if (model.logoUrl) {
-        return (
-            <span className="relative h-4 w-4 shrink-0 overflow-hidden rounded-sm">
-                <Image
-                    src={model.logoUrl}
-                    alt={model.name}
-                    fill
-                    sizes="16px"
-                    className={cn('object-contain', active && 'brightness-0 invert')}
-                />
-            </span>
-        )
-    }
-
-    // Fallback: coloured initial letter
-    return (
-        <span
-            className={cn(
-                'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-[9px] font-bold',
-                active ? 'bg-white/20 text-white' : 'bg-[#F5F0EB] text-[#555]'
-            )}
-        >
-            {model.name.charAt(0).toUpperCase()}
-        </span>
     )
 }
