@@ -1,15 +1,12 @@
 /**
  * Prompt detail page — /prompt/[slug]
- *
- * SSG via generateStaticParams + ISR. Large image, copyable prompt, metadata,
- * similar prompts, and approved reviews. Records a view on mount.
  */
 
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { Eye, Copy, Star, Tag as TagIcon, Heart } from 'lucide-react'
+import { Eye, Copy, Star, Tag as TagIcon, Heart, Share2, Sparkles } from 'lucide-react'
 import {
   getPromptBySlug,
   listPublishedSlugs,
@@ -21,10 +18,10 @@ import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
 import { CopyButton } from '@/components/prompt/CopyButton'
 import { LikeButton } from '@/components/prompt/LikeButton'
+import { ShareButton } from '@/components/prompt/Sharebutton'
 import { ViewTracker } from '@/components/prompt/ViewTracker'
 import { PromptGrid } from '@/components/prompt/PromptGrid'
 import { ModelIcon } from '@/components/prompt/ModelIcon'
-import { Badge } from '@/components/ui/badge'
 
 export const revalidate = 300
 
@@ -69,116 +66,161 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
     listApprovedReviews(prompt.id),
   ])
 
-  const aspectRatio =
-    prompt.width && prompt.height ? `${prompt.width} / ${prompt.height}` : '4 / 5'
-
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pt-4 pb-6 sm:px-6 lg:px-8">
       <ViewTracker resourceId={prompt.id} />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+      {/* ── Breadcrumb ── */}
+      <nav className="mb-3 flex items-center gap-1.5 text-xs text-[#BBBBBB]">
+        <Link href={routes.home} className="transition-colors hover:text-[#111111]">
+          Home
+        </Link>
+        <span>/</span>
+        {prompt.category && (
+          <>
+            <Link
+              href={routes.category(prompt.category.slug)}
+              className="transition-colors hover:text-[#111111]"
+            >
+              {prompt.category.name}
+            </Link>
+            <span>/</span>
+          </>
+        )}
+        <span className="truncate text-[#111111]">{prompt.title}</span>
+      </nav>
 
-        {/* ── Image ── */}
-        <div>
-          <div
-            className="relative w-full overflow-hidden rounded-2xl border border-[#F0EBE5] bg-white"
-            style={{ aspectRatio }}
-          >
-            {prompt.imageUrl ? (
-              <Image
+      {/* ── Main grid ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[60%_40%]">
+
+        <div className="overflow-hidden rounded-3xl bg-transparent lg:h-[calc(100vh-8rem)] h-[400px]">
+          {prompt.imageUrl ? (
+            <div className="flex h-full w-full items-center justify-center">
+              <img
                 src={prompt.imageUrl}
                 alt={prompt.title}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 60vw"
-                className="object-contain"
-                {...(prompt.blurDataUrl
-                  ? { placeholder: 'blur' as const, blurDataURL: prompt.blurDataUrl }
-                  : {})}
+                className="max-h-full max-w-full rounded-3xl object-contain shadow-sm"
               />
-            ) : null}
-          </div>
-        </div>
-
-        {/* ── Details ── */}
-        <div className="lg:sticky lg:top-24 lg:self-start">
-          <h1 className="text-2xl font-bold tracking-tight text-[#111111]">{prompt.title}</h1>
-          <p className="mt-1.5 text-sm text-[#666666]">by {prompt.creatorName}</p>
-
-          {/* Stats */}
-          <div className="mt-4 flex items-center gap-4 text-sm text-[#666666]">
-            <span className="flex items-center gap-1.5">
-              <Eye size={15} className="text-[#999999]" />
-              {formatCount(prompt.viewCount)} views
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Copy size={15} className="text-[#999999]" />
-              {formatCount(prompt.copyCount)} copies
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Heart size={15} className="text-[#999999]" />
-              {formatCount(prompt.likeCount)} likes
-            </span>
-            {prompt.avgRating !== null && (
-              <span className="flex items-center gap-1.5">
-                <Star size={15} className="fill-[#FFB26B] text-[#FFB26B]" />
-                {prompt.avgRating.toFixed(1)}
-              </span>
-            )}
-          </div>
-
-          {/* Prompt text */}
-          {prompt.promptText && (
-            <div className="mt-6">
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#999999]">
-                Prompt
-              </h2>
-              <div className="rounded-xl border border-[#F0EBE5] bg-[#FFFCFA] p-4">
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#111111]">
-                  {prompt.promptText}
-                </p>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <CopyButton resourceId={prompt.id} text={prompt.promptText} className="flex-1" />
-                <LikeButton
-                  resourceId={prompt.id}
-                  initialCount={prompt.likeCount}
-                  variant="button"
-                />
-              </div>
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Sparkles size={32} className="text-[#E5DDD6]" />
             </div>
           )}
+        </div>
 
-          {/* Description */}
-          {prompt.description && (
-            <p className="mt-6 text-sm leading-relaxed text-[#666666]">{prompt.description}</p>
-          )}
+        {/* ── Right: Details ── */}
+        <div className="flex flex-col rounded-2xl border border-[#F0EBE5] bg-white p-5">
 
-          {/* Meta chips */}
-          <div className="mt-6 flex flex-wrap gap-2">
+          {/* Badges */}
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
             {prompt.category && (
               <Link href={routes.category(prompt.category.slug)}>
-                <Badge variant="secondary" className="gap-1">
-                  <TagIcon size={11} />
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#C0DD97] bg-[#EAF3DE] px-2.5 py-0.5 text-[11px] font-medium text-[#3B6D11] transition-colors hover:bg-[#C0DD97]">
+                  <TagIcon size={10} />
                   {prompt.category.name}
-                </Badge>
+                </span>
               </Link>
             )}
             {prompt.model && (
-              <Link href={routes.model(prompt.model.slug)} className="inline-flex">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F0EBE5] bg-white py-0.5 pl-0.5 pr-2.5 text-xs font-medium text-[#666666] transition-colors hover:border-[#FFB26B] hover:text-[#111111]">
-                  <ModelIcon name={prompt.model.name} slug={prompt.model.slug} size="sm" />
+              <Link href={routes.model(prompt.model.slug)}>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#B5D4F4] bg-[#E6F1FB] py-0.5 pl-1 pr-2.5 text-[11px] font-medium text-[#185FA5] transition-colors hover:bg-[#B5D4F4]">
+                  <ModelIcon name={prompt.model.name} slug={prompt.model.slug} logo_path={prompt.model.logo_path} size="sm" />
                   {prompt.model.name}
                 </span>
               </Link>
             )}
           </div>
 
-          {/* Tags */}
+          {/* Title */}
+          <h1 className="text-[16px] font-semibold leading-snug tracking-tight text-[#111111]">
+            {prompt.title}
+          </h1>
+
+          {/* Creator */}
+          <p className="mt-0.5 text-[12px] text-[#BBBBBB]">
+            by <span className="font-medium text-[#777777]">{prompt.creatorName}</span>
+          </p>
+
+          {/* Stats */}
+          <div className="mt-3 flex items-center gap-4 border-y border-[#F5F0EC] py-2.5 text-[11px] text-[#666666]">
+            <span className="flex items-center gap-1">
+              <Eye size={12} />{formatCount(prompt.viewCount)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Copy size={12} />{formatCount(prompt.copyCount)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Heart size={12} />{formatCount(prompt.likeCount)}
+            </span>
+            {prompt.avgRating !== null && (
+              <span className="flex items-center gap-1">
+                <Star size={12} className="fill-[#FFB26B] text-[#FFB26B]" />
+                {prompt.avgRating.toFixed(1)}
+              </span>
+            )}
+          </div>
+
+          {/* ── Prompt section ── */}
+          {prompt.promptText && (
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#666666]">
+                Prompt
+              </p>
+
+              {/* Action bar */}
+              <div className="flex items-center gap-2">
+                <CopyButton
+                  resourceId={prompt.id}
+                  text={prompt.promptText}
+                  className="cursor-pointer h-9 flex-1 rounded-xl bg-[#111111] text-[12px] font-medium text-white transition-colors hover:bg-[#333333]"
+                />
+                <ShareButton
+                  slug={prompt.slug}
+                  title={prompt.title}
+                  imageUrl={prompt.imageUrl ?? undefined}
+                  className="cursor-pointer flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[#D9CFC7] bg-white text-[#888888] transition-colors hover:border-[#CCCCCC] hover:text-[#111111]"
+                  aria-label="Share prompt"
+                >
+                  <Share2 size={14} />
+                </ShareButton>
+                <LikeButton
+                  resourceId={prompt.id}
+                  initialCount={prompt.likeCount}
+                  variant="button"
+                  className="flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-[#D9CFC7] bg-white px-3 text-[11px] text-[#888888] transition-colors hover:border-[#CCCCCC] hover:text-[#111111] focus:outline-none focus:ring-0 active:border-[#EEEEEE]"
+                />
+              </div>
+
+              {/* Prompt box */}
+              <div className="max-h-[200px] min-h-[120px] overflow-y-auto rounded-xl border border-[#D9CFC7] bg-[#FFFCFA] p-3.5 font-mono text-[11.5px] leading-relaxed text-[#111111] [scrollbar-width:thin]">
+                <p className="whitespace-pre-wrap break-words">{prompt.promptText}</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Description section ── */}
+          {prompt.description && (
+            <div className="mt-5 flex flex-col gap-2 border-t border-dashed border-[#EDE8E3] pt-5">
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#666666]">
+                About this prompt
+              </p>
+              <div className="max-h-[90px] overflow-y-auto rounded-xl border border-[#D8D0C8] bg-[#F8F5F2] p-3.5 [scrollbar-width:thin]">
+                <p className="text-[12px] italic leading-relaxed text-[#555555]">
+                  {prompt.description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Tags ── */}
           {prompt.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {prompt.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-[#FFF9F5] px-2.5 py-0.5 text-xs text-[#999999]">
+                <span
+                  key={tag}
+                  className="rounded-full bg-[#ECEAE6] px-2.5 py-0.5 text-[10px] text-[#666666]"
+                >
                   #{tag}
                 </span>
               ))}
@@ -189,38 +231,48 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
 
       {/* ── Reviews ── */}
       {reviews.length > 0 && (
-        <section className="mt-14">
-          <h2 className="mb-5 text-lg font-semibold text-[#111111]">
-            Reviews <span className="text-sm font-normal text-[#999999]">({reviews.length})</span>
+        <section className="mt-10">
+          <h2 className="mb-4 text-[15px] font-semibold text-[#111111]">
+            Reviews{' '}
+            <span className="text-sm font-normal text-[#999999]">({reviews.length})</span>
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {reviews.map((review) => (
-              <div key={review.id} className="rounded-xl border border-[#F0EBE5] bg-white p-5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#111111]">{review.reviewerName}</span>
+              <div
+                key={review.id}
+                className="rounded-xl border border-[#F0EBE5] bg-white p-4"
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[13px] font-medium text-[#111111]">
+                    {review.reviewerName}
+                  </span>
                   {review.rating !== null && (
                     <span className="flex items-center gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           size={11}
-                          className={i < review.rating! ? 'fill-[#FFB26B] text-[#FFB26B]' : 'text-[#E5DDD6]'}
+                          className={
+                            i < review.rating!
+                              ? 'fill-[#FFB26B] text-[#FFB26B]'
+                              : 'text-[#E5DDD6]'
+                          }
                         />
                       ))}
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-[#666666]">{review.body}</p>
+                <p className="text-[12.5px] leading-relaxed text-[#666666]">{review.body}</p>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Similar ── */}
+      {/* ── Similar prompts ── */}
       {similar.length > 0 && (
-        <section className="mt-14">
-          <h2 className="mb-5 text-lg font-semibold text-[#111111]">More like this</h2>
+        <section className="mt-10">
+          <h2 className="mb-4 text-[15px] font-semibold text-[#111111]">More like this</h2>
           <PromptGrid prompts={similar} />
         </section>
       )}
