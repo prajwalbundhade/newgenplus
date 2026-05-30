@@ -16,6 +16,43 @@ export interface TaxonomyItem {
   provider?: string | null
 }
 
+export interface TaxonomyItemWithCount extends TaxonomyItem {
+  promptCount: number
+}
+
+export async function listTopModelsByPromptCount(limit = 4): Promise<TaxonomyItemWithCount[]> {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .from('resources')                     // ← was 'prompts'
+    .select('model_id, models!inner(id, name, slug, logo_path, provider)')
+    .eq('status', 'published')
+    .eq('models.status', 'published') as unknown as {
+      data: Array<{ model_id: string; models: TaxonomyItem }> | null
+      error: unknown
+    }
+
+  if (error || !data) return []
+
+  const countMap = new Map<string, { item: TaxonomyItem; count: number }>()
+
+  for (const row of data) {
+    const model = row.models
+    if (!model?.id) continue
+    const entry = countMap.get(model.id)
+    if (entry) {
+      entry.count++
+    } else {
+      countMap.set(model.id, { item: model, count: 1 })
+    }
+  }
+
+  return [...countMap.values()]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
+    .map(({ item, count }) => ({ ...item, promptCount: count }))
+}
+
 export async function listPublishedCategories(): Promise<TaxonomyItem[]> {
   const supabase = createAdminClient()
   return trySelectMany<TaxonomyItem>(

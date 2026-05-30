@@ -23,6 +23,7 @@ import {
 import {
   listPublishedCategories,
   listPublishedModels,
+  listTopModelsByPromptCount
 } from '@/features/taxonomy/queries/taxonomy.queries'
 import { PromoBanners } from '@/components/prompt/PromptBanner'
 import { FilterSidebar } from '@/components/prompt/FilterBar'
@@ -51,7 +52,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const { category, model, sort } = await searchParams
   const activeSort = parseSort(sort)
 
-  const [categories, models, firstPage] = await Promise.all([
+  const [categories, models, firstPage, topModels] = await Promise.all([
     listPublishedCategories(),
     listPublishedModels(),
     listPublishedPrompts({
@@ -60,11 +61,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       modelSlug: model,
       limit: PAGE_SIZE,
     }),
-  ])
+    listTopModelsByPromptCount(4),
+  ]);
 
-  // Top models for the toolbar. promptCount isn't fetched on the lightweight
-  // TaxonomyItem, so we simply take the first four (already name-ordered).
-  const topModels = models.slice(0, 4)
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

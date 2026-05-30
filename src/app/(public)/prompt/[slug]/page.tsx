@@ -116,7 +116,7 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
             {prompt.category && (
               <Link href={routes.category(prompt.category.slug)}>
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#C0DD97] bg-[#EAF3DE] px-2.5 py-0.5 text-[11px] font-medium text-[#3B6D11] transition-colors hover:bg-[#C0DD97]">
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[#D7E4BF] bg-[#F6FAEF] px-3 text-[11px] font-medium text-[#5E7D2F]">
                   <TagIcon size={10} />
                   {prompt.category.name}
                 </span>
@@ -124,7 +124,7 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
             )}
             {prompt.model && (
               <Link href={routes.model(prompt.model.slug)}>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#B5D4F4] bg-[#E6F1FB] py-0.5 pl-1 pr-2.5 text-[11px] font-medium text-[#185FA5] transition-colors hover:bg-[#B5D4F4]">
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[#DCE5F2] bg-[#F7FAFE] px-3 text-[11px] font-medium text-[#4B6B93]">
                   <ModelIcon name={prompt.model.name} slug={prompt.model.slug} logo_path={prompt.model.logo_path} size="sm" />
                   {prompt.model.name}
                 </span>

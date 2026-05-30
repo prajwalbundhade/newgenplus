@@ -25,6 +25,12 @@ export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM;
     >
       {/* Image */}
       <div className="relative w-full overflow-hidden bg-[#FFF9F5]" style={{ aspectRatio }}>
+        {prompt.isFeatured && (
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-full bg-[#FF6B35] px-2 py-0.5 text-[11px] font-semibold text-white">
+            <Sparkles size={10} />
+            Trending
+          </div>
+        )}
         {prompt.imageUrl ? (
           <Image
             src={prompt.imageUrl}

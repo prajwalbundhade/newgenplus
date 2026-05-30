@@ -44,7 +44,7 @@ export default async function ModelPage({ params }: ModelPageProps) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-8 flex items-start gap-4">
-        <ModelIcon name={model.name} slug={model.slug} provider={model.provider} size="lg" />
+        <ModelIcon name={model.name} slug={model.slug} logo_path={model.logo_path} provider={model.provider} size="lg" />
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-[#FF6B35]">Model</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#111111]">{model.name}</h1>
