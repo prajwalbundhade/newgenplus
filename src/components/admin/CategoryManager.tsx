@@ -241,8 +241,8 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
 function StatusBadge({ status }: { status: ContentStatus }) {
   const map: Record<ContentStatus, { label: string; variant: 'success' | 'secondary' | 'danger' }> = {
     published: { label: 'Published', variant: 'success' },
-    draft:     { label: 'Draft',     variant: 'secondary' },
-    archived:  { label: 'Archived',  variant: 'danger' },
+    draft: { label: 'Draft', variant: 'secondary' },
+    archived: { label: 'Archived', variant: 'danger' },
   }
   const { label, variant } = map[status]
   return <Badge variant={variant}>{label}</Badge>

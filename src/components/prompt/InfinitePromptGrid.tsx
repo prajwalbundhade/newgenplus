@@ -69,7 +69,7 @@ export function InfinitePromptGrid({ initialPrompts, filter, pageSize }: Infinit
 
   return (
     <div>
-      <div className="columns-2 gap-3 sm:columns-3 sm:gap-4 lg:columns-4 xl:columns-5 [&>*]:mb-3 sm:[&>*]:mb-4">
+      <div className="columns-2 gap-3 sm:columns-2 md:columns-3 lg:columns-4 [&>*]:mb-3 sm:[&>*]:mb-4">
         {prompts.map((prompt, i) => (
           <div key={prompt.id} className="break-inside-avoid">
             <PromptCard prompt={prompt} priority={i < 5} />
