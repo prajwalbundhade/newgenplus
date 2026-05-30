@@ -5,7 +5,7 @@ import { routes } from '@/config/routes'
 
 const LINKS = [
   { label: 'About', href: '/about' },
-  { label: 'Submit', href: '/submit' },
+  { label: 'Contact', href: '/contact' },
   { label: 'Privacy', href: '/privacy' },
   { label: 'Terms', href: '/terms' },
 ]

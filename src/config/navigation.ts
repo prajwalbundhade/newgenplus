@@ -33,7 +33,10 @@ export const footerNav: FooterColumn[] = [
   },
   {
     title: 'Company',
-    links: [{ label: 'About', href: routes.about }],
+    links: [
+      { label: 'About', href: routes.about },
+      { label: 'Contact', href: routes.contact },
+    ],
   },
   {
     title: 'Legal',

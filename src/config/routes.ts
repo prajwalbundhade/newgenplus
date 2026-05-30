@@ -14,6 +14,7 @@ export const routes = {
   category: (slug: string) => `/category/${slug}`,
   model: (slug: string) => `/model/${slug}`,
   about: '/about',
+  contact: '/contact',
   privacy: '/privacy',
   terms: '/terms',
 
