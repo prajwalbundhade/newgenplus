@@ -13,6 +13,7 @@ export interface TaxonomyItem {
   name: string
   slug: string
   logo_path?: string | null
+  provider?: string | null
 }
 
 export async function listPublishedCategories(): Promise<TaxonomyItem[]> {

@@ -52,7 +52,7 @@ export interface PromptDetailVM extends PromptCardVM {
   publishedAt: string | null
   categoryId: string | null
   category: { name: string; slug: string } | null
-  model: { name: string; slug: string } | null
+  model: { name: string; slug: string, logo_path: string | null } | null
 }
 
 export interface PublicReviewVM {
@@ -213,7 +213,7 @@ export async function searchPublishedPrompts(term: string, limit = 48): Promise<
 type ResourceDetailRow = ResourceRow & {
   resource_media: MediaPick | MediaPick[] | null
   categories: { name: string; slug: string } | null
-  models: { name: string; slug: string } | null
+  models: { name: string; slug: string, logo_path: string | null } | null
 }
 
 export async function getPromptBySlug(slug: string): Promise<PromptDetailVM | null> {
@@ -223,7 +223,7 @@ export async function getPromptBySlug(slug: string): Promise<PromptDetailVM | nu
       .from('resources')
       .select(
         '*, resource_media(storage_bucket, storage_path, blur_data_url, width, height), ' +
-          'categories(name, slug), models(name, slug)'
+        'categories(name, slug), models(name, slug, logo_path)'
       )
       .eq('slug', slug)
       .eq('status', 'published')

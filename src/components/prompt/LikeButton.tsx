@@ -75,14 +75,17 @@ export function LikeButton({
         aria-label={liked ? 'Unlike' : 'Like'}
         className={cn(
           'inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-medium transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35] focus-visible:ring-offset-2',
+          'outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB26B] focus-visible:ring-offset-1',
           liked
             ? 'border-[#FF6B35] bg-[#FFF0E8] text-[#FF6B35]'
-            : 'border-[#F0EBE5] bg-white text-[#666666] hover:border-[#FFB26B] hover:text-[#111111]',
+            : 'border-[#E5E5E5] bg-white text-[#888888] hover:border-[#FFB26B] hover:text-[#FF6B35]',
           className
         )}
       >
-        <Heart size={16} className={liked ? 'fill-[#FF6B35]' : ''} />
+        <Heart
+          size={16}
+          className={liked ? 'fill-[#FF6B35] text-[#FF6B35]' : 'text-[#888888]'}
+        />
         {formatCount(count)}
       </button>
     )

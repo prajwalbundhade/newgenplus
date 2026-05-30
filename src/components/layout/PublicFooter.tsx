@@ -1,66 +1,56 @@
-/**
- * PublicFooter — site footer for the public experience.
- *
- * Server Component. Renders link columns from the navigation config.
- * Light theme, brand tokens, no client JS.
- */
-
 import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
-import { footerNav } from '@/config/navigation'
+
+const LINKS = [
+  { label: 'About', href: '/about' },
+  { label: 'Submit', href: '/submit' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+]
 
 export function PublicFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-[#F0EBE5] bg-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+    <footer>
+      <div >
+        <div className="rounded-t-[20px] border border-b-0 border-[#E8E3DE] bg-white px-6 pb-6 pt-8">
+          <div className="flex flex-col items-center text-center">
 
-          {/* Brand block */}
-          <div className="col-span-2 sm:col-span-1">
-            <Link href={routes.home} className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF6B35]">
-                <Sparkles size={16} className="text-white" />
-              </span>
-              <span className="text-base font-bold tracking-tight text-[#111111]">
-                {siteConfig.name}
-              </span>
-            </Link>
-            <p className="mt-3 max-w-xs text-sm text-[#666666]">
-              {siteConfig.tagline}.
-            </p>
-          </div>
-
-          {/* Link columns */}
-          {footerNav.map((column) => (
-            <div key={column.title}>
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-[#999999]">
-                {column.title}
-              </h3>
-              <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-[#666666] transition-colors hover:text-[#FF6B35]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#FF6B35] shadow-[0_2px_8px_rgba(255,107,53,0.25)]">
+              <Sparkles size={18} className="text-white" />
             </div>
-          ))}
-        </div>
 
-        {/* Bottom bar */}
-        <div className="mt-10 border-t border-[#F0EBE5] pt-6">
-          <p className="text-xs text-[#999999]">
-            © {year} {siteConfig.name}. All rights reserved.
-          </p>
+            <h3 className="text-base font-semibold text-[#111111]">
+              {siteConfig.name}
+            </h3>
+
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#777777]">
+              Discover, save, and share high-quality AI prompts that help you
+              create faster, think better, and get more done.
+            </p>
+
+            <div className="my-4 h-px w-10 bg-[#EEEEEE]" />
+
+            <nav className="mb-4 flex flex-wrap justify-center gap-5">
+              {LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-xs text-[#999999] transition-colors hover:text-[#FF6B35]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <p className="text-[11px] text-[#BBBBBB]">
+              © {year} {siteConfig.name} • Crafted for the AI community
+            </p>
+
+          </div>
         </div>
       </div>
     </footer>
