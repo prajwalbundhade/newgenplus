@@ -35,10 +35,10 @@ export function StarRating({ value, onChange }: StarRatingProps) {
             onClick={() => onChange(star === value ? 0 : star)}
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(0)}
-            className="group flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:scale-110 active:scale-95"
+            className="group flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:scale-110 active:scale-95"
           >
             <Star
-              size={22}
+              size={20}
               className={`transition-colors duration-150 ${
                 active
                   ? 'fill-[#FF6B35] text-[#FF6B35]'

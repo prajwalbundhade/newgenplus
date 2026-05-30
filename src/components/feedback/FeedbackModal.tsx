@@ -169,7 +169,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end justify-center sm:items-center transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="feedback-modal-title"
@@ -185,18 +185,18 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
       <div
         ref={dialogRef}
         className={`
-          relative w-full max-w-lg transform rounded-t-2xl sm:rounded-2xl
+          relative w-full max-w-lg transform rounded-2xl
           border border-[#E8E3DE] bg-white shadow-xl
           transition-all duration-200 ease-out
-          max-h-[90vh] overflow-y-auto
+          max-h-[85vh] overflow-y-auto
           ${visible ? 'translate-y-0 scale-100' : 'translate-y-4 scale-95'}
         `}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#F0EBE5] bg-white/95 backdrop-blur-sm px-5 py-4 sm:px-6 rounded-t-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#F0EBE5] bg-white/95 backdrop-blur-sm px-4 py-3 sm:px-6 sm:py-4 rounded-t-2xl">
           <h2
             id="feedback-modal-title"
-            className="text-base font-semibold text-[#111111] sm:text-lg"
+            className="text-[15px] font-semibold text-[#111111] sm:text-lg"
           >
             Give Feedback
           </h2>
@@ -204,25 +204,25 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
             ref={firstFocusRef}
             type="button"
             onClick={handleClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#666666] transition-colors hover:bg-[#F0EBE5] hover:text-[#111111]"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-[#666666] transition-colors hover:bg-[#F0EBE5] hover:text-[#111111]"
             aria-label="Close feedback dialog"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <div className="px-4 py-4 sm:px-6 sm:py-6">
           {status === 'success' ? (
             <SuccessState onClose={handleClose} />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-5">
               {/* Name + Email row */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                 <fieldset>
                   <label
                     htmlFor="feedback-name"
-                    className="mb-1.5 block text-[13px] font-medium text-[#666666]"
+                    className="mb-1 block text-[12px] font-medium text-[#666666] sm:text-[13px] sm:mb-1.5"
                   >
                     Name <span className="text-[#999999]">(optional)</span>
                   </label>
@@ -232,13 +232,13 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="h-10 w-full rounded-lg border border-[#E8E3DE] bg-white px-3 text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
+                    className="h-9 sm:h-10 w-full rounded-lg border border-[#E8E3DE] bg-white px-3 text-[13px] sm:text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
                   />
                 </fieldset>
                 <fieldset>
                   <label
                     htmlFor="feedback-email"
-                    className="mb-1.5 block text-[13px] font-medium text-[#666666]"
+                    className="mb-1 block text-[12px] font-medium text-[#666666] sm:text-[13px] sm:mb-1.5"
                   >
                     Email <span className="text-[#999999]">(optional)</span>
                   </label>
@@ -248,23 +248,23 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="h-10 w-full rounded-lg border border-[#E8E3DE] bg-white px-3 text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
+                    className="h-9 sm:h-10 w-full rounded-lg border border-[#E8E3DE] bg-white px-3 text-[13px] sm:text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
                   />
                 </fieldset>
               </div>
 
               {/* Feedback type */}
               <fieldset>
-                <label className="mb-2 block text-[13px] font-medium text-[#666666]">
+                <label className="mb-1.5 block text-[12px] font-medium text-[#666666] sm:text-[13px] sm:mb-2">
                   Feedback Type <span className="text-[#DC2626]">*</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {FEEDBACK_TYPES.map((ft) => (
                     <button
                       key={ft.value}
                       type="button"
                       onClick={() => setType(ft.value)}
-                      className={`rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-all ${
+                      className={`rounded-md sm:rounded-lg border px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11.5px] sm:text-[13px] font-medium transition-all ${
                         type === ft.value
                           ? 'border-[#FF6B35] bg-[#FFF6F2] text-[#FF6B35]'
                           : 'border-[#E8E3DE] bg-white text-[#666666] hover:border-[#D9CFC7] hover:text-[#4A3F3A]'
@@ -278,7 +278,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
               {/* Star rating */}
               <fieldset>
-                <label className="mb-2 block text-[13px] font-medium text-[#666666]">
+                <label className="mb-1 block text-[12px] font-medium text-[#666666] sm:text-[13px] sm:mb-2">
                   Rating
                 </label>
                 <StarRating value={rating} onChange={setRating} />
@@ -288,7 +288,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
               <fieldset>
                 <label
                   htmlFor="feedback-message"
-                  className="mb-1.5 block text-[13px] font-medium text-[#666666]"
+                  className="mb-1 block text-[12px] font-medium text-[#666666] sm:text-[13px] sm:mb-1.5"
                 >
                   Message <span className="text-[#DC2626]">*</span>
                 </label>
@@ -296,14 +296,14 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
                   id="feedback-message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Tell us what's on your mind... (minimum 20 characters)"
-                  rows={4}
+                  placeholder="Tell us what's on your mind... (min 20 characters)"
+                  rows={3}
                   minLength={20}
                   maxLength={2000}
                   required
-                  className="w-full resize-none rounded-lg border border-[#E8E3DE] bg-white px-3 py-2.5 text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
+                  className="w-full resize-none rounded-lg border border-[#E8E3DE] bg-white px-3 py-2 sm:py-2.5 text-[13px] sm:text-sm text-[#111111] placeholder:text-[#BBBBBB] transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/10"
                 />
-                <div className="mt-1 flex justify-between text-[11px] text-[#999999]">
+                <div className="mt-0.5 flex justify-between text-[10px] sm:text-[11px] text-[#999999]">
                   <span>
                     {message.length < 20
                       ? `${20 - message.length} more characters needed`
@@ -315,7 +315,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
 
               {/* Error state */}
               {status === 'error' && (
-                <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#DC2626]">
+                <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 sm:px-4 sm:py-3 text-[12px] sm:text-sm text-[#DC2626]">
                   {errorMessage}
                 </div>
               )}
@@ -324,7 +324,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
               <button
                 type="submit"
                 disabled={!type || message.length < 20 || status === 'submitting'}
-                className="flex h-11 w-full items-center justify-center rounded-xl bg-[#FF6B35] text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,107,53,0.3)] transition-all hover:bg-[#e55a2b] hover:shadow-[0_4px_12px_rgba(255,107,53,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                className="flex h-10 sm:h-11 w-full items-center justify-center rounded-xl bg-[#FF6B35] text-[13px] sm:text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,107,53,0.3)] transition-all hover:bg-[#e55a2b] hover:shadow-[0_4px_12px_rgba(255,107,53,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
                 {status === 'submitting' ? (
                   <span className="flex items-center gap-2">
