@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { routes } from '@/config/routes'
+import { trackSearch } from '@/lib/analytics/gtag'
 
 interface SearchBarProps {
   initialQuery?: string
@@ -34,7 +35,10 @@ export function SearchBar({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = value.trim()
-    if (trimmed) router.push(routes.search(trimmed))
+    if (trimmed) {
+      trackSearch(trimmed)
+      router.push(routes.search(trimmed))
+    }
   }
 
   const compact = variant === 'compact'

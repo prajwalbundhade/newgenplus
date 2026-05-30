@@ -17,6 +17,18 @@ export const siteConfig = {
   twitter: 'newgenplus',
   /** Default OG image path (generated route is added in the SEO phase). */
   ogImage: '/opengraph-image',
+  /** BCP-47 locale used for OG/Twitter and html lang. */
+  locale: 'en_US',
+  /** Default, site-wide keywords. Per-page keywords extend these. */
+  keywords: [
+    'AI prompts',
+    'prompt library',
+    'Midjourney prompts',
+    'ChatGPT prompts',
+    'image generation prompts',
+    'AI art prompts',
+    'free prompts',
+  ],
 } as const
 
 export type SiteConfig = typeof siteConfig

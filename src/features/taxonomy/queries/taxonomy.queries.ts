@@ -88,3 +88,36 @@ export async function getModelBySlug(slug: string): Promise<ModelRow | null> {
     supabase.from('models').select('*').eq('slug', slug).eq('status', 'published').maybeSingle()
   )
 }
+
+// ---------------------------------------------------------------------------
+// SEO helpers (sitemap)
+// ---------------------------------------------------------------------------
+
+export interface TaxonomySitemapEntry {
+  slug: string
+  updatedAt: string | null
+}
+
+export async function listCategorySitemapEntries(): Promise<TaxonomySitemapEntry[]> {
+  const supabase = createAdminClient()
+  const rows = await trySelectMany<Pick<CategoryRow, 'slug' | 'updated_at'>>(
+    supabase
+      .from('categories')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .order('sort_order', { ascending: true })
+  )
+  return rows.map((r) => ({ slug: r.slug, updatedAt: r.updated_at }))
+}
+
+export async function listModelSitemapEntries(): Promise<TaxonomySitemapEntry[]> {
+  const supabase = createAdminClient()
+  const rows = await trySelectMany<Pick<ModelRow, 'slug' | 'updated_at'>>(
+    supabase
+      .from('models')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .order('name', { ascending: true })
+  )
+  return rows.map((r) => ({ slug: r.slug, updatedAt: r.updated_at }))
+}

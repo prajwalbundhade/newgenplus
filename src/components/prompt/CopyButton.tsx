@@ -12,15 +12,19 @@ import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
 import { incrementCopy } from '@/features/prompts/actions/counter.actions'
 import { getSessionId } from '@/lib/session-id'
+import { trackPromptCopy } from '@/lib/analytics/gtag'
 import { cn } from '@/lib/utils'
 
 interface CopyButtonProps {
   resourceId: string
   text: string
   className?: string
+  /** Optional metadata for the analytics event. */
+  slug?: string
+  title?: string
 }
 
-export function CopyButton({ resourceId, text, className }: CopyButtonProps) {
+export function CopyButton({ resourceId, text, className, slug, title }: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -28,8 +32,9 @@ export function CopyButton({ resourceId, text, className }: CopyButtonProps) {
       await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-      // Fire-and-forget counter increment.
+      // Fire-and-forget counter increment + analytics event.
       void incrementCopy(resourceId, getSessionId())
+      trackPromptCopy({ resourceId, slug, title })
     } catch {
       // Clipboard can fail on insecure origins; ignore silently.
     }

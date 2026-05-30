@@ -12,12 +12,19 @@ import { PromptGrid } from '@/components/prompt/PromptGrid'
 import { SearchBar } from '@/components/prompt/SearchBar'
 import { EmptyState } from '@/components/admin/EmptyState'
 import { siteConfig } from '@/config/site'
+import { routes } from '@/config/routes'
+import { buildMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
+// Search result URLs are deliberately kept out of the index (query-dependent,
+// not canonical content). The canonical points at the bare /search page so any
+// `?q=` permutation consolidates there.
+export const metadata: Metadata = buildMetadata({
+  absoluteTitle: `Search — ${siteConfig.name}`,
   title: 'Search',
-  description: `Search the ${siteConfig.name} prompt library.`,
-  robots: { index: false, follow: true },
-}
+  description: `Search the ${siteConfig.name} library of curated AI prompts by title, model, or keyword.`,
+  path: routes.search(),
+  index: false,
+})
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>

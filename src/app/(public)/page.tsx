@@ -16,6 +16,8 @@
 import { Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
 import { siteConfig } from '@/config/site'
+import { routes } from '@/config/routes'
+import { buildMetadata } from '@/lib/seo/metadata'
 import {
   listPublishedPrompts,
   type FeedSort,
@@ -34,11 +36,14 @@ import { EmptyState } from '@/components/admin/EmptyState'
 export const revalidate = 60
 const PAGE_SIZE = 24
 
-export const metadata: Metadata = {
-  title: { absolute: `${siteConfig.name} — ${siteConfig.tagline}` },
+// The homepage is the canonical root. Filter/sort params (?category, ?model,
+// ?sort) never change the canonical, so all filtered permutations consolidate
+// to `/` for indexing.
+export const metadata: Metadata = buildMetadata({
+  absoluteTitle: `${siteConfig.name} — ${siteConfig.tagline}`,
   description: siteConfig.description,
-  alternates: { canonical: '/' },
-}
+  path: routes.home,
+})
 
 function parseSort(value?: string): FeedSort {
   return value === 'trending' || value === 'top' ? value : 'recent'
