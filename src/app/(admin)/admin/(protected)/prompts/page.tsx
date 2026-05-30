@@ -71,7 +71,7 @@ export default async function AdminPromptsPage() {
 
       <Separator />
 
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         {resources.length === 0 ? (
           <EmptyState
             icon={Sparkles}
@@ -96,11 +96,11 @@ export default async function AdminPromptsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Views</TableHead>
-                  <TableHead className="text-right">Copies</TableHead>
-                  <TableHead className="text-right">Likes</TableHead>
+                  <TableHead className="hidden md:table-cell">Type</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
+                  <TableHead className="hidden text-right lg:table-cell">Views</TableHead>
+                  <TableHead className="hidden text-right lg:table-cell">Copies</TableHead>
+                  <TableHead className="hidden text-right lg:table-cell">Likes</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -146,22 +146,29 @@ function PromptTableRow({ resource }: { resource: PromptListItem }) {
               )}
             </div>
             <p className="mt-0.5 truncate text-xs text-[#999999]">/{resource.slug}</p>
+            {/* Mobile-only inline meta (columns hidden on small screens) */}
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+              <StatusBadge status={resource.status} />
+              <span className="text-[11px] text-[#999999]">
+                {resource.view_count.toLocaleString()} views · {resource.copy_count.toLocaleString()} copies · {(resource.like_count ?? 0).toLocaleString()} likes
+              </span>
+            </div>
           </div>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden md:table-cell">
         <ResourceTypeBadge type={resource.resource_type} />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <StatusBadge status={resource.status} />
       </TableCell>
-      <TableCell className="text-right tabular-nums text-[#666666]">
+      <TableCell className="hidden text-right tabular-nums text-[#666666] lg:table-cell">
         {resource.view_count.toLocaleString()}
       </TableCell>
-      <TableCell className="text-right tabular-nums text-[#666666]">
+      <TableCell className="hidden text-right tabular-nums text-[#666666] lg:table-cell">
         {resource.copy_count.toLocaleString()}
       </TableCell>
-      <TableCell className="text-right tabular-nums text-[#666666]">
+      <TableCell className="hidden text-right tabular-nums text-[#666666] lg:table-cell">
         {(resource.like_count ?? 0).toLocaleString()}
       </TableCell>
       <TableCell>

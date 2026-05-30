@@ -22,7 +22,7 @@ export default function AdminSettingsPage() {
         description="Platform configuration and preferences."
       />
       <Separator />
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         <EmptyState
           icon={Settings}
           title="Settings coming soon"

@@ -30,7 +30,7 @@ export default async function AdminCategoriesPage() {
     <div className="min-h-full">
       <PageHeader title="Categories" description="Organise prompts into browsable categories." />
       <Separator />
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         <CategoryManager categories={categories} />
       </div>
     </div>

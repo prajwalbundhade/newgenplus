@@ -95,7 +95,7 @@ export default async function AdminDashboardPage() {
 
       <Separator />
 
-      <div className="px-8 py-6 space-y-8">
+      <div className="px-4 py-5 sm:px-8 sm:py-6 space-y-8">
 
         {/* ── KPI cards ── */}
         <section>

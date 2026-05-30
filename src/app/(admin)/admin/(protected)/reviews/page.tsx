@@ -54,7 +54,7 @@ export default async function AdminReviewsPage() {
 
       <Separator />
 
-      <div className="space-y-6 px-8 py-6">
+      <div className="space-y-6 px-4 py-5 sm:px-8 sm:py-6">
         {/* Summary */}
         <div className="grid grid-cols-3 gap-4">
           <ReviewSummaryCard icon={Clock} label="Pending" count={pending.length} color="yellow" />

@@ -14,8 +14,12 @@
  */
 
 import { Sparkles } from 'lucide-react'
+import type { Metadata } from 'next'
 import { siteConfig } from '@/config/site'
-import { listPublishedPrompts } from '@/features/prompts/queries/prompt.queries'
+import {
+  listPublishedPrompts,
+  type FeedSort,
+} from '@/features/prompts/queries/prompt.queries'
 import {
   listPublishedCategories,
   listPublishedModels,
@@ -29,23 +33,27 @@ import { EmptyState } from '@/components/admin/EmptyState'
 export const revalidate = 60
 const PAGE_SIZE = 24
 
-export const metadata = {
+export const metadata: Metadata = {
   title: { absolute: `${siteConfig.name} — ${siteConfig.tagline}` },
   description: siteConfig.description,
   alternates: { canonical: '/' },
 }
 
-function parseSort(value) {
+function parseSort(value?: string): FeedSort {
   return value === 'trending' || value === 'top' ? value : 'recent'
 }
 
-export default async function HomePage({ searchParams }) {
+interface HomePageProps {
+  searchParams: Promise<{ category?: string; model?: string; sort?: string }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
   const { category, model, sort } = await searchParams
   const activeSort = parseSort(sort)
 
   const [categories, models, firstPage] = await Promise.all([
     listPublishedCategories(),
-    listPublishedModels(),           // all models — we pass top 4 to toolbar
+    listPublishedModels(),
     listPublishedPrompts({
       sort: activeSort,
       categorySlug: category,
@@ -54,10 +62,9 @@ export default async function HomePage({ searchParams }) {
     }),
   ])
 
-  // Top 4 models by promptCount (field must exist on TaxonomyItem, else just slice)
-  const topModels = [...models]
-    .sort((a, b) => (b.promptCount ?? 0) - (a.promptCount ?? 0))
-    .slice(0, 4)
+  // Top models for the toolbar. promptCount isn't fetched on the lightweight
+  // TaxonomyItem, so we simply take the first four (already name-ordered).
+  const topModels = models.slice(0, 4)
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
