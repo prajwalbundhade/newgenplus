@@ -19,6 +19,7 @@ import { selectMaybeOne, selectOne, writePayload } from '@/lib/supabase/query'
 import { type ActionResult, ok, fail } from '@/lib/action-result'
 import { uniqueSlug } from '@/lib/utils/slug'
 import { STORAGE_BUCKETS } from '@/lib/supabase/storage'
+import { MAX_IMAGE_BYTES, MAX_IMAGE_LABEL } from '@/config/upload'
 import {
   PromptCreateSchema,
   PromptUpdateSchema,
@@ -289,6 +290,9 @@ export async function attachPromptImage(
   }
   if (!file.type.startsWith('image/')) {
     return fail('File must be an image.')
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return fail(`Image is too large. Please upload an image under ${MAX_IMAGE_LABEL}.`)
   }
 
   const supabase = createAdminClient()
