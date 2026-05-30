@@ -3,11 +3,17 @@
 /**
  * ModelManager — client island for model CRUD.
  * Mirrors CategoryManager: server-provided list + real action mutations.
+ *
+ * Logos: each model has its own `logo_path`, stored as a base64 PNG data URL
+ * in the DB. The dialog lets an admin upload, replace, or clear that image;
+ * the picked file is rasterised client-side to a 192px-square PNG data URL
+ * before being submitted (so we avoid storing oversize originals and SVGs
+ * stay sandbox-safe).
  */
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, Trash2, Loader2, AlertCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, AlertCircle, Upload, X } from 'lucide-react'
 import {
   createModel,
   updateModel,
@@ -21,6 +27,7 @@ import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ModelIcon } from '@/components/prompt/ModelIcon'
+import { fileToLogoDataUrl } from '@/lib/image-to-data-url'
 import {
   Table,
   TableBody,
@@ -35,6 +42,20 @@ interface ModelManagerProps {
   models: ModelRow[]
 }
 
+/**
+ * Logo state machine inside the dialog:
+ *   - 'unchanged'  → don't send `logo_path` (server keeps existing value)
+ *   - 'cleared'    → send empty string (server sets logo_path = null)
+ *   - 'replaced'   → send the new data URL
+ */
+type LogoState =
+  | { kind: 'unchanged' }
+  | { kind: 'cleared' }
+  | { kind: 'replaced'; dataUrl: string }
+
+const ACCEPTED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']
+const MAX_LOGO_FILE_BYTES = 2 * 1024 * 1024 // 2 MB original; we down-rasterise after.
+
 export function ModelManager({ models }: ModelManagerProps) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -43,20 +64,77 @@ export function ModelManager({ models }: ModelManagerProps) {
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
+  // Logo dialog state — reset whenever the dialog opens.
+  const [logoState, setLogoState] = useState<LogoState>({ kind: 'unchanged' })
+  const [logoError, setLogoError] = useState<string | null>(null)
+  const [logoEncoding, setLogoEncoding] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
   function openCreate() {
     setEditing(null)
     setError(null)
+    setLogoState({ kind: 'unchanged' })
+    setLogoError(null)
     setDialogOpen(true)
   }
 
   function openEdit(model: ModelRow) {
     setEditing(model)
     setError(null)
+    setLogoState({ kind: 'unchanged' })
+    setLogoError(null)
     setDialogOpen(true)
+  }
+
+  /** Resolve the logo currently displayed in the dialog preview. */
+  function previewLogo(): string | null {
+    if (logoState.kind === 'replaced') return logoState.dataUrl
+    if (logoState.kind === 'cleared') return null
+    return editing?.logo_path ?? null
+  }
+
+  async function handleLogoFile(file: File | undefined | null) {
+    setLogoError(null)
+    if (!file) return
+
+    if (!ACCEPTED_LOGO_TYPES.includes(file.type)) {
+      setLogoError('Use PNG, JPEG, WebP, GIF, or SVG.')
+      return
+    }
+    if (file.size > MAX_LOGO_FILE_BYTES) {
+      setLogoError('Logo file is too large. Pick something under 2 MB.')
+      return
+    }
+
+    setLogoEncoding(true)
+    try {
+      const dataUrl = await fileToLogoDataUrl(file)
+      setLogoState({ kind: 'replaced', dataUrl })
+    } catch (err) {
+      setLogoError(err instanceof Error ? err.message : 'Could not read image.')
+    } finally {
+      setLogoEncoding(false)
+    }
+  }
+
+  function clearLogo() {
+    setLogoError(null)
+    setLogoState({ kind: 'cleared' })
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   function handleSubmit(formData: FormData) {
     setError(null)
+
+    // Sync logo intent into the FormData so the server action sees it.
+    if (logoState.kind === 'replaced') {
+      formData.set('logo_path', logoState.dataUrl)
+    } else if (logoState.kind === 'cleared') {
+      formData.set('logo_path', '')
+    } else {
+      formData.delete('logo_path')
+    }
+
     startTransition(async () => {
       const result = editing ? await updateModel(formData) : await createModel(formData)
       if (!result.ok) {
@@ -79,6 +157,8 @@ export function ModelManager({ models }: ModelManagerProps) {
       router.refresh()
     })
   }
+
+  const dialogPreview = previewLogo()
 
   return (
     <>
@@ -111,7 +191,13 @@ export function ModelManager({ models }: ModelManagerProps) {
               <TableRow key={model.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <ModelIcon name={model.name} slug={model.slug} provider={model.provider} size="md" />
+                    <ModelIcon
+                      name={model.name}
+                      slug={model.slug}
+                      provider={model.provider}
+                      logo_path={model.logo_path}
+                      size="md"
+                    />
                     <div className="min-w-0">
                       <p className="font-medium text-[#111111]">{model.name}</p>
                       {model.description && (
@@ -204,6 +290,73 @@ export function ModelManager({ models }: ModelManagerProps) {
             </div>
           )}
 
+          {/* Logo uploader */}
+          <div className="space-y-1.5">
+            <Label>Logo</Label>
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#F0EBE5] bg-[#FAFAFA]"
+                aria-hidden
+              >
+                {dialogPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={dialogPreview}
+                    alt=""
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span className="text-[10px] font-medium text-[#999999]">No logo</span>
+                )}
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={logoEncoding || pending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {logoEncoding ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Upload size={13} />
+                  )}
+                  {dialogPreview ? 'Replace' : 'Upload'}
+                </Button>
+                {dialogPreview && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={logoEncoding || pending}
+                    onClick={clearLogo}
+                  >
+                    <X size={13} />
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_LOGO_TYPES.join(',')}
+                className="hidden"
+                onChange={(e) => {
+                  void handleLogoFile(e.target.files?.[0])
+                  e.target.value = ''
+                }}
+              />
+            </div>
+            {logoError ? (
+              <p className="text-xs text-[#DC2626]">{logoError}</p>
+            ) : (
+              <p className="text-xs text-[#999999]">
+                PNG, JPEG, WebP, GIF, or SVG. Resized to a 192&times;192 PNG before saving.
+              </p>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label>Name</Label>
             <Input name="name" defaultValue={editing?.name} placeholder="Midjourney v6" required />
@@ -237,7 +390,7 @@ export function ModelManager({ models }: ModelManagerProps) {
             <Button type="button" variant="ghost" size="md" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={pending}>
+            <Button type="submit" variant="primary" size="md" disabled={pending || logoEncoding}>
               {pending ? <Loader2 size={15} className="animate-spin" /> : editing ? 'Save' : 'Create'}
             </Button>
           </div>
