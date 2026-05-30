@@ -1,25 +1,23 @@
 'use client'
 
 /**
- * FilterBar — sort tabs + category chips + model chips.
+ * FilterSidebar
  *
- * Three rows:
- *   1) Sort tabs: Recent / Trending / Top Rated
- *   2) Categories: horizontal scroll on mobile
- *   3) Models: horizontal scroll on mobile
+ * Desktop  → fixed left sidebar (white, black text)
+ * Mobile   → sticky bottom bar with a filter icon that opens a bottom sheet
  *
- * Drives the feed via URL search params (?sort=&category=&model=) so the
- * server page re-queries. Keeps the page server-rendered while filtering stays
- * interactive without a client data layer.
+ * Drop-in replacement for FilterBar. Same props, same URL-param logic.
  */
 
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ModelIcon } from '@/components/prompt/ModelIcon'
 import type { TaxonomyItem } from '@/features/taxonomy/queries/taxonomy.queries'
 import type { FeedSort } from '@/features/prompts/queries/prompt.queries'
 
-interface FilterBarProps {
+interface FilterSidebarProps {
   categories: TaxonomyItem[]
   models: TaxonomyItem[]
   activeSort: FeedSort
@@ -33,16 +31,28 @@ const SORTS: { key: FeedSort; label: string }[] = [
   { key: 'top', label: 'Top Rated' },
 ]
 
-export function FilterBar({
+export function FilterSidebar({
   categories,
   models,
   activeSort,
   activeCategory,
   activeModel,
-}: FilterBarProps) {
+}: FilterSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  // mobile bottom-sheet open state
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  // close sheet on route change
+  useEffect(() => { setSheetOpen(false) }, [searchParams])
+
+  // lock body scroll when sheet is open
+  useEffect(() => {
+    document.body.style.overflow = sheetOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [sheetOpen])
 
   function setParam(key: string, value: string | null) {
     const params = new URLSearchParams(searchParams.toString())
@@ -52,47 +62,141 @@ export function FilterBar({
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
+  const activeCount =
+    (activeSort !== 'recent' ? 1 : 0) +
+    (activeCategory ? 1 : 0) +
+    (activeModel ? 1 : 0)
+
+  const filterContent = (
+    <FilterPanelContent
+      categories={categories}
+      models={models}
+      activeSort={activeSort}
+      activeCategory={activeCategory}
+      activeModel={activeModel}
+      setParam={setParam}
+    />
+  )
+
   return (
-    <div className="space-y-3">
-      {/* Row 1 — sort tabs */}
-      <div className="flex items-center gap-1 border-b border-[#F0EBE5]">
-        {SORTS.map((s) => {
-          const active = activeSort === s.key
-          return (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setParam('sort', s.key === 'recent' ? null : s.key)}
-              className={cn(
-                'relative px-3 py-2 text-sm font-medium transition-colors',
-                active ? 'text-[#FF6B35]' : 'text-[#666666] hover:text-[#111111]'
-              )}
-            >
-              {s.label}
-              {active && (
-                <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[#FF6B35]" />
-              )}
-            </button>
-          )
-        })}
+    <>
+      {/* ─── DESKTOP SIDEBAR ─────────────────────────────────────────── */}
+      <aside className="hidden lg:flex lg:flex-col w-56 xl:w-60 shrink-0">
+        <div className="sticky top-20 rounded-xl border border-[#E8E3DE] bg-white p-5 shadow-sm">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-black">
+            Filters
+          </p>
+          {filterContent}
+        </div>
+      </aside>
+
+      {/* ─── MOBILE BOTTOM BAR ───────────────────────────────────────── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex justify-center pb-5 pointer-events-none">
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="pointer-events-auto flex items-center gap-2 rounded-full bg-black px-5 py-3 text-xs font-semibold text-white shadow-lg active:scale-95 transition-transform"
+        >
+          <SlidersHorizontal size={15} />
+          Filters
+          {activeCount > 0 && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF6B35] text-[10px] font-bold text-white">
+              {activeCount}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Row 2 — categories */}
+      {/* ─── MOBILE BOTTOM SHEET ─────────────────────────────────────── */}
+      {/* Backdrop */}
+      <div
+        onClick={() => setSheetOpen(false)}
+        className={cn(
+          'lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-300',
+          sheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+      />
+
+      {/* Sheet panel */}
+      <div
+        className={cn(
+          'lg:hidden fixed bottom-0 inset-x-0 z-50 rounded-t-2xl bg-white shadow-2xl transition-transform duration-300 ease-out',
+          sheetOpen ? 'translate-y-0' : 'translate-y-full'
+        )}
+        style={{ maxHeight: '80vh' }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-1 w-10 rounded-full bg-[#E0DAD4]" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0EBE5]">
+          <p className="text-base font-bold text-black">Filters</p>
+          <button
+            type="button"
+            onClick={() => setSheetOpen(false)}
+            className="rounded-full p-1.5 hover:bg-[#F5F0EB] transition-colors"
+          >
+            <X size={18} className="text-black" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto px-5 py-4" style={{ maxHeight: 'calc(80vh - 80px)' }}>
+          {filterContent}
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Shared panel content (used in both sidebar and sheet)
+───────────────────────────────────────────────────────────────────────────── */
+
+interface PanelProps {
+  categories: TaxonomyItem[]
+  models: TaxonomyItem[]
+  activeSort: FeedSort
+  activeCategory?: string
+  activeModel?: string
+  setParam: (key: string, value: string | null) => void
+}
+
+function FilterPanelContent({
+  categories,
+  models,
+  activeSort,
+  activeCategory,
+  activeModel,
+  setParam,
+}: PanelProps) {
+  return (
+    <div className="space-y-6">
+
+      {/* Categories */}
       {categories.length > 0 && (
-        <ChipRow ariaLabel="Categories">
-          <Chip label="All" active={!activeCategory} onClick={() => setParam('category', null)} />
-          {categories.map((c) => (
-            <Chip
-              key={c.id}
-              label={c.name}
-              active={activeCategory === c.slug}
-              onClick={() => setParam('category', c.slug)}
+        <FilterSection title="Category">
+          <div className="flex flex-col gap-1">
+            <ChipButton
+              label="All"
+              active={!activeCategory}
+              onClick={() => setParam('category', null)}
             />
-          ))}
-        </ChipRow>
+            {categories.map((c) => (
+              <ChipButton
+                key={c.id}
+                label={c.name}
+                active={activeCategory === c.slug}
+                onClick={() => setParam('category', c.slug)}
+              />
+            ))}
+          </div>
+        </FilterSection>
       )}
 
-      {/* Row 3 — models */}
+      {/* Models */}
       {models.length > 0 && (
         <ChipRow ariaLabel="AI models">
           <Chip label="All models" active={!activeModel} onClick={() => setParam('model', null)} muted />
@@ -105,26 +209,47 @@ export function FilterBar({
               muted
               icon={<ModelIcon name={m.name} slug={m.slug} size="sm" />}
             />
-          ))}
-        </ChipRow>
+            {models.map((m) => (
+              <ChipButton
+                key={m.id}
+                label={m.name}
+                active={activeModel === m.slug}
+                onClick={() => setParam('model', m.slug)}
+              />
+            ))}
+          </div>
+        </FilterSection>
       )}
+
     </div>
   )
 }
 
-function ChipRow({ children, ariaLabel }: { children: React.ReactNode; ariaLabel: string }) {
+function FilterSection({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(true)
+
   return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-0.5"
-    >
-      {children}
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mb-2 flex w-full items-center justify-between text-[10px] font-semibold uppercase tracking-widest text-black"
+      >
+        {title}
+        {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+      </button>
+      {open && children}
     </div>
   )
 }
 
-function Chip({
+function ChipButton({
   label,
   active,
   onClick,
@@ -145,10 +270,8 @@ function Chip({
         'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1.5 text-sm font-medium transition-colors',
         icon ? 'pl-1.5 pr-3.5' : 'px-3.5',
         active
-          ? 'bg-[#FF6B35] text-white'
-          : muted
-            ? 'bg-white text-[#666666] border border-[#F0EBE5] hover:border-[#FFB26B] hover:text-[#111111]'
-            : 'bg-white text-[#666666] border border-[#F0EBE5] hover:border-[#FFB26B] hover:text-[#111111]'
+          ? 'bg-black text-white'
+          : 'text-[#333333] hover:bg-[#F5F0EB]'
       )}
     >
       {icon}
