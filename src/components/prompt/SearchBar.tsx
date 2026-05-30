@@ -57,9 +57,16 @@ export function SearchBar({
         placeholder="Search prompts…"
         aria-label="Search prompts"
         className={cn(
-          'w-full border border-[#F0EBE5] bg-white text-[#111111] placeholder:text-[#999999]',
-          'transition-colors focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20',
-          compact ? 'h-9 rounded-lg pl-9 pr-3 text-sm' : 'h-12 rounded-full pl-11 pr-4 text-sm'
+          'w-full border border-[#D9CFC7] bg-white text-[#111111]',
+          'placeholder:text-[#999999]',
+          'shadow-sm',
+          'transition-all duration-200',
+          'focus:border-[#FF6B35]',
+          'focus:outline-none',
+          'focus:ring-2 focus:ring-[#FF6B35]/15',
+          compact
+            ? 'h-9 rounded-lg pl-9 pr-3 text-sm'
+            : 'h-12 rounded-full pl-11 pr-4 text-sm'
         )}
       />
     </form>

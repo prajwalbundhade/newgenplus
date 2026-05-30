@@ -32,7 +32,7 @@ const BANNERS = [
         cta: { label: 'Submit a prompt', href: '/submit' },
         theme: 'white',
     },
-]
+] as const
 
 const themes = {
     dark: {
@@ -61,7 +61,7 @@ const themes = {
     },
 }
 
-function BannerCard({ card }) {
+function BannerCard({ card }: { card: typeof BANNERS[number] }) {
     const t = themes[card.theme]
 
     const content = (
@@ -106,7 +106,7 @@ function BannerCard({ card }) {
         </div>
     )
 
-    return card.cta.external ? (
+    return (card.cta as any).external ? (
         <a href={card.cta.href} target="_blank" rel="noopener noreferrer" className="contents">
             {content}
         </a>
