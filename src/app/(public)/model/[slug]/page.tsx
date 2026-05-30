@@ -13,6 +13,9 @@ import { ModelIcon } from '@/components/prompt/ModelIcon'
 import { EmptyState } from '@/components/admin/EmptyState'
 import { routes } from '@/config/routes'
 import { siteConfig } from '@/config/site'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { JsonLd } from '@/lib/seo/JsonLd'
+import { collectionPageSchema, breadcrumbSchema } from '@/lib/seo/schema'
 
 export const revalidate = 120
 
@@ -23,15 +26,29 @@ interface ModelPageProps {
 export async function generateMetadata({ params }: ModelPageProps): Promise<Metadata> {
   const { slug } = await params
   const model = await getModelBySlug(slug)
-  if (!model) return { title: 'Model not found' }
+  if (!model) {
+    return buildMetadata({
+      title: 'Model not found',
+      description: 'This model could not be found.',
+      path: routes.model(slug),
+      index: false,
+    })
+  }
 
   const description =
-    model.description ?? `Browse AI prompts for ${model.name} on ${siteConfig.name}.`
-  return {
-    title: `${model.name} prompts`,
+    model.description?.trim() ||
+    `Browse the best AI prompts for ${model.name}${model.provider ? ` by ${model.provider}` : ''} on ${siteConfig.name}. Copy curated ${model.name} prompts instantly — free, no account required.`
+
+  return buildMetadata({
+    title: `${model.name} Prompts`,
     description,
-    alternates: { canonical: routes.model(slug) },
-  }
+    path: routes.model(slug),
+    keywords: [
+      model.name,
+      `${model.name} prompts`,
+      ...(model.provider ? [model.provider] : []),
+    ],
+  })
 }
 
 export default async function ModelPage({ params }: ModelPageProps) {
@@ -41,8 +58,26 @@ export default async function ModelPage({ params }: ModelPageProps) {
 
   const prompts = await listPublishedPrompts({ modelSlug: slug, limit: 60 })
 
+  const description =
+    model.description?.trim() ||
+    `Browse the best AI prompts for ${model.name} on ${siteConfig.name}.`
+
+  const ldCollection = collectionPageSchema({
+    name: `${model.name} Prompts`,
+    description,
+    path: routes.model(slug),
+    items: prompts.map((p) => ({ name: p.title, path: routes.prompt(p.slug) })),
+  })
+
+  const ldBreadcrumb = breadcrumbSchema([
+    { name: 'Home', path: routes.home },
+    { name: model.name, path: routes.model(slug) },
+  ])
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd id="ld-model" schema={ldCollection} />
+      <JsonLd id="ld-model-breadcrumb" schema={ldBreadcrumb} />
       <header className="mb-8 flex items-start gap-4">
         <ModelIcon name={model.name} slug={model.slug} logo_path={model.logo_path} provider={model.provider} size="lg" />
         <div>

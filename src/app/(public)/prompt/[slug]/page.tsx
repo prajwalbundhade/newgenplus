@@ -2,7 +2,6 @@
  * Prompt detail page — /prompt/[slug]
  */
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -16,6 +15,9 @@ import {
 import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
+import { buildMetadata } from '@/lib/seo/metadata'
+import { JsonLd } from '@/lib/seo/JsonLd'
+import { promptSchema, breadcrumbSchema } from '@/lib/seo/schema'
 import { CopyButton } from '@/components/prompt/CopyButton'
 import { LikeButton } from '@/components/prompt/LikeButton'
 import { ShareButton } from '@/components/prompt/Sharebutton'
@@ -34,26 +36,63 @@ interface PromptPageProps {
   params: Promise<{ slug: string }>
 }
 
+/** Build a clean, indexable description from the prompt's own content. */
+function promptDescription(prompt: {
+  title: string
+  description: string | null
+  promptText: string | null
+  modelName: string | null
+}): string {
+  if (prompt.description?.trim()) return prompt.description.trim()
+  if (prompt.promptText?.trim()) {
+    const text = prompt.promptText.trim().replace(/\s+/g, ' ')
+    return text.length > 155 ? `${text.slice(0, 152)}…` : text
+  }
+  const model = prompt.modelName ? ` for ${prompt.modelName}` : ''
+  return `${prompt.title} — a curated AI prompt${model} on ${siteConfig.name}. Copy it free, no account required.`
+}
+
 export async function generateMetadata({ params }: PromptPageProps): Promise<Metadata> {
   const { slug } = await params
   const prompt = await getPromptBySlug(slug)
-  if (!prompt) return { title: 'Prompt not found' }
-
-  const description =
-    prompt.description ?? `${prompt.title} — a curated AI prompt on ${siteConfig.name}.`
-
-  return {
-    title: prompt.title,
-    description,
-    alternates: { canonical: routes.prompt(prompt.slug) },
-    openGraph: {
-      title: prompt.title,
-      description,
-      type: 'article',
-      url: `${siteConfig.url}${routes.prompt(prompt.slug)}`,
-      ...(prompt.imageUrl ? { images: [{ url: prompt.imageUrl }] } : {}),
-    },
+  if (!prompt) {
+    return buildMetadata({
+      title: 'Prompt not found',
+      description: 'This prompt could not be found.',
+      path: routes.prompt(slug),
+      index: false,
+    })
   }
+
+  const description = promptDescription(prompt)
+  const titleWithModel = prompt.modelName
+    ? `${prompt.title} — ${prompt.modelName} Prompt`
+    : `${prompt.title} — AI Prompt`
+
+  return buildMetadata({
+    title: titleWithModel,
+    description,
+    path: routes.prompt(prompt.slug),
+    ogType: 'article',
+    keywords: [
+      prompt.title,
+      ...(prompt.modelName ? [prompt.modelName, `${prompt.modelName} prompt`] : []),
+      ...(prompt.category ? [prompt.category.name] : []),
+      ...prompt.tags,
+    ],
+    images: [
+      {
+        // Per-prompt branded share card. Falls back internally to a generic
+        // card if media is missing, so this URL is always valid.
+        url: `/api/og/${prompt.slug}`,
+        width: 1200,
+        height: 630,
+        alt: prompt.title,
+      },
+    ],
+    publishedTime: prompt.publishedAt,
+    authorName: prompt.creatorName,
+  })
 }
 
 export default async function PromptDetailPage({ params }: PromptPageProps) {
@@ -66,9 +105,45 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
     listApprovedReviews(prompt.id),
   ])
 
+  // Build JSON-LD from real content: CreativeWork (+ aggregateRating/reviews
+  // only when approved reviews exist) and a breadcrumb trail.
+  const ldPrompt = promptSchema({
+    title: prompt.title,
+    slug: prompt.slug,
+    description: prompt.description,
+    imageUrl: prompt.imageUrl,
+    creatorName: prompt.creatorName,
+    modelName: prompt.model?.name ?? prompt.modelName,
+    publishedAt: prompt.publishedAt,
+    avgRating: prompt.avgRating,
+    reviewCount: prompt.reviewCount,
+    keywords: prompt.tags,
+    reviews: reviews.map((r) => ({
+      reviewerName: r.reviewerName,
+      rating: r.rating,
+      body: r.body,
+      createdAt: r.createdAt,
+    })),
+  })
+
+  const ldBreadcrumb = breadcrumbSchema([
+    { name: 'Home', path: routes.home },
+    ...(prompt.category
+      ? [{ name: prompt.category.name, path: routes.category(prompt.category.slug) }]
+      : []),
+    { name: prompt.title, path: routes.prompt(prompt.slug) },
+  ])
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pt-4 pb-6 sm:px-6 lg:px-8">
-      <ViewTracker resourceId={prompt.id} />
+      <JsonLd id="ld-prompt" schema={ldPrompt} />
+      <JsonLd id="ld-prompt-breadcrumb" schema={ldBreadcrumb} />
+      <ViewTracker
+        resourceId={prompt.id}
+        slug={prompt.slug}
+        title={prompt.title}
+        modelName={prompt.model?.name ?? prompt.modelName}
+      />
 
       {/* ── Breadcrumb ── */}
       <nav className="mb-3 flex items-center gap-1.5 text-xs text-[#BBBBBB]">
@@ -173,6 +248,8 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
                 <CopyButton
                   resourceId={prompt.id}
                   text={prompt.promptText}
+                  slug={prompt.slug}
+                  title={prompt.title}
                   className="cursor-pointer h-9 flex-1 rounded-xl bg-[#111111] text-[12px] font-medium text-white transition-colors hover:bg-[#333333]"
                 />
                 <ShareButton

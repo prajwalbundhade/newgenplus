@@ -260,6 +260,73 @@ export async function listPublishedSlugs(limit = 1000): Promise<string[]> {
   return rows.map((r) => r.slug)
 }
 
+// ---------------------------------------------------------------------------
+// SEO helpers (sitemap + OG image)
+// ---------------------------------------------------------------------------
+
+export interface SitemapEntry {
+  slug: string
+  /** ISO timestamp for <lastmod>. */
+  updatedAt: string | null
+}
+
+/**
+ * Lightweight list for the sitemap: slug + last-modified only, no media joins.
+ * Ordered newest-first and capped high enough for tens of thousands of rows
+ * (Google's 50k/sitemap limit governs the upper bound — see sitemap.ts).
+ */
+export async function listSitemapPrompts(limit = 45000): Promise<SitemapEntry[]> {
+  const supabase = createAdminClient()
+  const rows = await trySelectMany<Pick<ResourceRow, 'slug' | 'updated_at' | 'published_at'>>(
+    supabase
+      .from('resources')
+      .select('slug, updated_at, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(limit)
+  )
+  return rows.map((r) => ({
+    slug: r.slug,
+    updatedAt: r.updated_at ?? r.published_at,
+  }))
+}
+
+export interface PromptOgData {
+  title: string
+  imageUrl: string | null
+  blurDataUrl: string | null
+  modelName: string | null
+  creatorName: string
+}
+
+/** Minimal data needed to render a branded OG image for a prompt. */
+export async function getPromptOgData(slug: string): Promise<PromptOgData | null> {
+  const supabase = createAdminClient()
+  const row = await trySelectMaybeOne<ResourceDetailRow>(
+    supabase
+      .from('resources')
+      .select(
+        'title, creator_name, resource_media(storage_bucket, storage_path, blur_data_url, width, height), models(name, slug, logo_path)'
+      )
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .maybeSingle()
+  )
+  if (!row) return null
+
+  const media = pickMedia(row.resource_media)
+  const model = pickOne<{ name: string; slug: string }>(row.models)
+  return {
+    title: row.title,
+    imageUrl: media
+      ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.storage_path)
+      : null,
+    blurDataUrl: media?.blur_data_url ?? null,
+    modelName: model?.name ?? null,
+    creatorName: row.creator_name,
+  }
+}
+
 /** Similar prompts: same category, excluding the current one. */
 export async function listSimilarPrompts(
   resourceId: string,
