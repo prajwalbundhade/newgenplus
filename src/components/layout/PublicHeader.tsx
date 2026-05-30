@@ -8,11 +8,12 @@
  */
 
 import Link from 'next/link'
-import { Sparkles, MessageCircle } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
 import { primaryNav } from '@/config/navigation'
 import { SearchBar } from '@/components/prompt/SearchBar'
+import { FeedbackButton } from '@/components/feedback/FeedbackButton'
 import { HeaderWrapper } from './HeaderWrapper'
 
 export function PublicHeader() {
@@ -63,24 +64,8 @@ export function PublicHeader() {
           <SearchBar variant="compact" />
         </div>
 
-        {/* Feedback button */}
-        <Link
-          href=""
-          className="
-              group hidden shrink-0 items-center gap-1.5 whitespace-nowrap
-              rounded-[10px] border-[1.5px] border-[#D9CFC7] bg-white
-              px-[15px] text-[13px] font-medium text-[#4A3F3A] no-underline
-              transition-colors hover:border-[#FF6B35] hover:bg-[#FFF6F2]
-              hover:text-[#FF6B35] sm:flex
-            "
-          style={{ height: 37 }}
-        >
-          <MessageCircle
-            size={15}
-            className="text-[#FF6B35] transition-colors"
-          />
-          Give feedback
-        </Link>
+        {/* Feedback button + modal */}
+        <FeedbackButton />
 
       </div>
     </HeaderWrapper>
