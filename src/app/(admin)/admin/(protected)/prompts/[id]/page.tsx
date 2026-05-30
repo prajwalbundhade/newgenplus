@@ -43,7 +43,7 @@ export default async function EditPromptPage({ params }: EditPromptPageProps) {
         description={detail.resource.title}
       />
       <Separator />
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         <PromptForm
           mode="edit"
           categories={categories}

@@ -1,7 +1,8 @@
 /**
  * PageHeader — consistent top section for every admin page.
  *
- * Server Component.
+ * Server Component. Responsive: comfortable desktop padding, tighter on mobile,
+ * with title and actions stacking on small screens.
  */
 
 import { cn } from '@/lib/utils'
@@ -16,14 +17,21 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
   return (
-    <div className={cn('flex items-start justify-between gap-4 px-8 py-6', className)}>
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-[#111111]">{title}</h1>
+    <div
+      className={cn(
+        'flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-8 sm:py-6',
+        className
+      )}
+    >
+      <div className="min-w-0">
+        <h1 className="text-lg font-semibold tracking-tight text-[#111111] sm:text-xl">{title}</h1>
         {description && (
           <p className="mt-1 text-sm text-[#666666]">{description}</p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+      )}
     </div>
   )
 }

@@ -100,9 +100,9 @@ export function ModelManager({ models }: ModelManagerProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Provider</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Provider</TableHead>
+              <TableHead className="hidden lg:table-cell">Slug</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -112,27 +112,34 @@ export function ModelManager({ models }: ModelManagerProps) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <ModelIcon name={model.name} slug={model.slug} provider={model.provider} size="md" />
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-medium text-[#111111]">{model.name}</p>
                       {model.description && (
                         <p className="mt-0.5 line-clamp-1 text-xs text-[#999999]">{model.description}</p>
                       )}
+                      {/* Mobile-only inline meta */}
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+                        <StatusBadge status={model.status} />
+                        {model.provider && (
+                          <span className="text-[11px] text-[#999999]">{model.provider}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {model.provider ? (
                     <span className="text-sm text-[#666666]">{model.provider}</span>
                   ) : (
                     <span className="text-xs text-[#999999]">—</span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   <code className="rounded bg-[#FFF9F5] px-1.5 py-0.5 text-xs text-[#FF6B35]">
                     {model.slug}
                   </code>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <StatusBadge status={model.status} />
                 </TableCell>
                 <TableCell>

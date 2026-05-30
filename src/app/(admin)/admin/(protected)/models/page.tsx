@@ -30,7 +30,7 @@ export default async function AdminModelsPage() {
     <div className="min-h-full">
       <PageHeader title="AI Models" description="Manage the AI models associated with prompts." />
       <Separator />
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         <ModelManager models={models} />
       </div>
     </div>

@@ -24,7 +24,7 @@ export default async function NewPromptPage() {
     <div className="min-h-full">
       <PageHeader title="New Prompt" description="Create and publish a new AI prompt." />
       <Separator />
-      <div className="px-8 py-6">
+      <div className="px-4 py-5 sm:px-8 sm:py-6">
         <PromptForm mode="create" categories={categories} models={models} />
       </div>
     </div>

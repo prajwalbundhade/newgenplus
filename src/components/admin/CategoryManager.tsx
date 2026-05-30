@@ -102,29 +102,36 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10">#</TableHead>
+              <TableHead className="hidden w-10 sm:table-cell">#</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Slug</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {categories.map((category, i) => (
               <TableRow key={category.id}>
-                <TableCell className="tabular-nums text-[#999999]">{i + 1}</TableCell>
+                <TableCell className="hidden tabular-nums text-[#999999] sm:table-cell">{i + 1}</TableCell>
                 <TableCell>
                   <p className="font-medium text-[#111111]">{category.name}</p>
                   {category.description && (
                     <p className="mt-0.5 line-clamp-1 text-xs text-[#999999]">{category.description}</p>
                   )}
+                  {/* Mobile-only inline meta */}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+                    <StatusBadge status={category.status} />
+                    <code className="rounded bg-[#FFF9F5] px-1.5 py-0.5 text-[11px] text-[#FF6B35]">
+                      {category.slug}
+                    </code>
+                  </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <code className="rounded bg-[#FFF9F5] px-1.5 py-0.5 text-xs text-[#FF6B35]">
                     {category.slug}
                   </code>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <StatusBadge status={category.status} />
                 </TableCell>
                 <TableCell>

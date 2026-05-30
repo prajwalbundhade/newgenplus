@@ -28,6 +28,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { TagInput } from '@/components/ui/tag-input'
 
 interface PromptFormProps {
   mode: 'create' | 'edit'
@@ -190,11 +191,11 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
               />
             </Field>
 
-            <Field label="Tags" hint="Comma-separated.">
-              <Input
+            <Field label="Tags" hint="Type a tag and press Enter. Click ✕ to remove.">
+              <TagInput
                 name="tags"
-                defaultValue={resource?.tags?.join(', ') ?? ''}
-                placeholder="portrait, cinematic, golden-hour"
+                defaultValue={resource?.tags ?? []}
+                placeholder="e.g. portrait, cinematic…"
               />
             </Field>
           </div>
