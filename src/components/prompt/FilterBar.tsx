@@ -198,17 +198,14 @@ function FilterPanelContent({
 
       {/* Models */}
       {models.length > 0 && (
-        <ChipRow ariaLabel="AI models">
-          <Chip label="All models" active={!activeModel} onClick={() => setParam('model', null)} muted />
-          {models.map((m) => (
-            <Chip
-              key={m.id}
-              label={m.name}
-              active={activeModel === m.slug}
-              onClick={() => setParam('model', m.slug)}
-              muted
-              icon={<ModelIcon name={m.name} slug={m.slug} size="sm" />}
+        <FilterSection title="AI Model">
+          <div className="flex flex-col gap-1">
+            <ChipButton
+              label="All models"
+              active={!activeModel}
+              onClick={() => setParam('model', null)}
             />
+
             {models.map((m) => (
               <ChipButton
                 key={m.id}
