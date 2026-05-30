@@ -16,10 +16,11 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { UploadCloud, AlertCircle, Loader2 } from 'lucide-react'
+import { UploadCloud, AlertCircle, Loader2, X } from 'lucide-react'
 import { createPrompt, updatePrompt, attachPromptImage } from '@/features/prompts/actions/prompt.actions'
 import { processImageFile } from '@/lib/image-processing'
 import { publicStorageUrl } from '@/lib/supabase/storage'
+import { MAX_IMAGE_BYTES, MAX_IMAGE_LABEL, ACCEPTED_IMAGE_TYPES } from '@/config/upload'
 import type { SelectOption } from '@/features/admin/queries/admin.queries'
 import type { ResourceRow, ResourceMediaRow } from '@/types/database.types'
 import { Input } from '@/components/ui/input'
@@ -29,6 +30,13 @@ import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { TagInput } from '@/components/ui/tag-input'
+import { cn } from '@/lib/utils'
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 interface PromptFormProps {
   mode: 'create' | 'edit'
@@ -54,17 +62,60 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
       : null
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingImageUrl)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0]
+  /** Validate and accept a file (shared by file input + drag-drop). */
+  function selectFile(selected: File | null | undefined) {
     if (!selected) return
+    setImageError(null)
+
+    const typeOk =
+      selected.type.startsWith('image/') &&
+      (ACCEPTED_IMAGE_TYPES as readonly string[]).includes(selected.type)
+    if (!typeOk) {
+      setImageError('Unsupported file type. Use JPEG, PNG, WebP, AVIF, or GIF.')
+      return
+    }
+
+    if (selected.size > MAX_IMAGE_BYTES) {
+      setImageError(
+        `That image is ${formatBytes(selected.size)}. Please upload an image under ${MAX_IMAGE_LABEL}.`
+      )
+      return
+    }
+
     setFile(selected)
     setPreviewUrl(URL.createObjectURL(selected))
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    selectFile(e.target.files?.[0])
+    // Reset the input so re-selecting the same file still fires onChange.
+    e.target.value = ''
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
+    e.preventDefault()
+    setDragActive(false)
+    selectFile(e.dataTransfer.files?.[0])
+  }
+
+  function clearImage() {
+    setFile(null)
+    setPreviewUrl(null)
+    setImageError(null)
   }
 
   function handleSubmit(formData: FormData) {
     setError(null)
     setFieldErrors({})
+
+    // Block submission if the selected image failed validation.
+    if (imageError) {
+      setError('Please fix the cover image before saving.')
+      return
+    }
 
     // Sync controlled fields into the FormData.
     formData.set('status', status)
@@ -208,22 +259,60 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
             <Label>Cover image</Label>
             <label
               htmlFor="image-file"
-              className="group relative flex aspect-[4/5] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#E5DDD6] bg-white transition-colors hover:border-[#FFB26B]"
+              onDragOver={(e) => {
+                e.preventDefault()
+                setDragActive(true)
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault()
+                setDragActive(false)
+              }}
+              onDrop={handleDrop}
+              className={cn(
+                'group relative flex aspect-[4/5] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed bg-white transition-colors',
+                dragActive
+                  ? 'border-[#FF6B35] bg-[#FFF0E8]'
+                  : imageError
+                    ? 'border-[#FCA5A5]'
+                    : 'border-[#E5DDD6] hover:border-[#FFB26B]'
+              )}
             >
               {previewUrl ? (
-                <Image
-                  src={previewUrl}
-                  alt="Prompt cover preview"
-                  fill
-                  unoptimized
-                  className="object-cover"
-                  sizes="320px"
-                />
+                <>
+                  <Image
+                    src={previewUrl}
+                    alt="Prompt cover preview"
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="320px"
+                  />
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      clearImage()
+                    }}
+                    aria-label="Remove image"
+                    className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition-colors hover:bg-black/75"
+                  >
+                    <X size={14} />
+                  </button>
+                  {/* Hover hint to replace */}
+                  <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="mb-3 text-xs font-medium text-white">Click or drop to replace</span>
+                  </div>
+                </>
               ) : (
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <UploadCloud size={24} className="text-[#999999]" />
-                  <span className="text-xs text-[#666666]">Click to upload image</span>
-                  <span className="text-[10px] text-[#999999]">JPEG, PNG, WebP · up to 10MB</span>
+                <div className="flex flex-col items-center gap-2 px-4 text-center">
+                  <UploadCloud size={24} className={dragActive ? 'text-[#FF6B35]' : 'text-[#999999]'} />
+                  <span className="text-xs font-medium text-[#666666]">
+                    {dragActive ? 'Drop image to upload' : 'Click or drag & drop to upload'}
+                  </span>
+                  <span className="text-[10px] text-[#999999]">
+                    JPEG, PNG, WebP · up to {MAX_IMAGE_LABEL}
+                  </span>
                 </div>
               )}
             </label>
@@ -234,6 +323,21 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
               className="hidden"
               onChange={handleFileChange}
             />
+
+            {/* File meta / error */}
+            {imageError ? (
+              <div
+                role="alert"
+                className="flex items-start gap-1.5 rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-2"
+              >
+                <AlertCircle size={13} className="mt-0.5 shrink-0 text-[#DC2626]" />
+                <p className="text-xs text-[#DC2626]">{imageError}</p>
+              </div>
+            ) : file ? (
+              <p className="truncate text-xs text-[#999999]">
+                {file.name} · {formatBytes(file.size)}
+              </p>
+            ) : null}
           </div>
 
           {/* Status */}
