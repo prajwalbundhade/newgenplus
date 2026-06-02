@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 004: Functions & Triggers
+-- NeuwGenX — Migration 004: Functions & Triggers
 -- =============================================================================
 -- Run order: 4 of 5
 -- Description:

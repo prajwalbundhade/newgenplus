@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Seed Data (Local Development Only)
+-- NeuwGenX — Seed Data (Local Development Only)
 -- =============================================================================
 -- WARNING: Do NOT run this in production.
 -- Provides realistic seed data for local development and testing.
@@ -49,7 +49,7 @@ INSERT INTO resources (
   'golden-hour-portrait-cinematic-realism',
   'A breathtaking golden hour portrait with cinematic depth of field and warm tones.',
   'Portrait of a woman at golden hour, cinematic lighting, shallow depth of field, warm amber tones, film grain, 85mm lens, photorealistic, highly detailed skin texture, bokeh background, --ar 4:5 --v 6',
-  'NewGenPlus',
+  'NeuwGenX',
   '11111111-0000-0000-0000-000000000001',
   '22222222-0000-0000-0000-000000000001',
   ARRAY['portrait', 'golden-hour', 'cinematic', 'photorealistic', 'woman'],
@@ -64,7 +64,7 @@ INSERT INTO resources (
   'brutalist-architecture-dramatic-sky',
   'Imposing brutalist concrete architecture under a dramatic stormy sky.',
   'Brutalist concrete building, dramatic stormy sky, low angle shot, harsh shadows, monochromatic tones, architectural photography, ultra wide lens, 8K resolution, --ar 16:9 --v 6',
-  'NewGenPlus',
+  'NeuwGenX',
   '11111111-0000-0000-0000-000000000002',
   '22222222-0000-0000-0000-000000000001',
   ARRAY['architecture', 'brutalist', 'dramatic', 'concrete', 'stormy'],
@@ -79,7 +79,7 @@ INSERT INTO resources (
   'enchanted-forest-fantasy-atmosphere',
   'A mystical enchanted forest with glowing flora and ethereal light rays.',
   'Enchanted forest, glowing mushrooms, ethereal light rays through ancient trees, mystical fog, fantasy atmosphere, vibrant greens and purples, highly detailed, cinematic composition, --ar 3:4 --v 6',
-  'NewGenPlus',
+  'NeuwGenX',
   '11111111-0000-0000-0000-000000000007',
   '22222222-0000-0000-0000-000000000001',
   ARRAY['fantasy', 'forest', 'enchanted', 'mystical', 'nature'],

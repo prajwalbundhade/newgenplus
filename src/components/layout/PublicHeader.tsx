@@ -8,10 +8,10 @@
  */
 
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { routes } from '@/config/routes'
 import { primaryNav } from '@/config/navigation'
+import { BrandIcon } from '@/components/brand/BrandIcon'
 import { SearchBar } from '@/components/prompt/SearchBar'
 import { FeedbackButton } from '@/components/feedback/FeedbackButton'
 import { HeaderWrapper } from './HeaderWrapper'
@@ -29,7 +29,7 @@ export function PublicHeader() {
           className="flex h-[33px] w-[33px] items-center justify-center rounded-[9px] bg-[#FF6B35]"
           style={{ boxShadow: '0 3px 10px rgba(255,107,53,0.38)' }}
         >
-          <Sparkles size={15} className="text-white" />
+          <BrandIcon size={19} />
         </span>
         <span
           className="hidden text-[15.5px] tracking-[-0.4px] text-[#13100E] sm:inline"

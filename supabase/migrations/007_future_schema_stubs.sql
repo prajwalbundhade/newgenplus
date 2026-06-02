@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 007: Future Schema Stubs
+-- NeuwGenX — Migration 007: Future Schema Stubs
 -- =============================================================================
 -- Status: COMMENTED OUT — Do not run in V1.
 -- Purpose: Documents the V2+ schema extensions so future migrations are

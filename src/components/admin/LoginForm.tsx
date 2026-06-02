@@ -10,9 +10,10 @@
  */
 
 import { useActionState } from 'react'
-import { Sparkles, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { loginWithPassword } from '@/features/admin/actions/auth.actions'
 import type { LoginState } from '@/features/admin/actions/auth.actions'
+import { BrandIcon } from '@/components/brand/BrandIcon'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -40,10 +41,10 @@ export function LoginForm({ redirectTo, errorCode }: LoginFormProps) {
         {/* Brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF6B35] shadow-[0_4px_12px_0_rgb(255_107_53/0.3)]">
-            <Sparkles size={22} className="text-white" />
+            <BrandIcon size={29} />
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold tracking-tight text-[#111111]">NewGenPlus</h1>
+            <h1 className="text-xl font-bold tracking-tight text-[#111111]">NeuwGenX</h1>
             <p className="text-sm text-[#999999]">Admin Console</p>
           </div>
         </div>

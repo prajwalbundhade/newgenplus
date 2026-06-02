@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 005: Row Level Security Policies
+-- NeuwGenX — Migration 005: Row Level Security Policies
 -- =============================================================================
 -- Run order: 5 of 5
 -- Description:

@@ -1,23 +1,23 @@
 /**
  * About page — /about
  *
- * Static informational page describing NewGenPlus, its mission,
+ * Static informational page describing NeuwGenX, its mission,
  * supported platforms, and goals.
  */
 
 import type { Metadata } from 'next'
-import { Sparkles } from 'lucide-react'
 import { buildMetadata } from '@/lib/seo/metadata'
 import { routes } from '@/config/routes'
 import { siteConfig } from '@/config/site'
+import { BrandIcon } from '@/components/brand/BrandIcon'
 
 export const metadata: Metadata = buildMetadata({
   title: 'About',
   description:
-    'Learn about NewGenPlus — a curated library of high-quality AI prompts designed to help creators, designers, marketers, developers, and AI enthusiasts discover better prompts and create better results.',
+    'Learn about NeuwGenX — a curated library of high-quality AI prompts designed to help creators, designers, marketers, developers, and AI enthusiasts discover better prompts and create better results.',
   path: routes.about,
   keywords: [
-    'about NewGenPlus',
+    'about NeuwGenX',
     'AI prompt library',
     'prompt discovery platform',
     'AI tools',
@@ -39,7 +39,7 @@ export default function AboutPage() {
       {/* Page header */}
       <header className="mb-10 text-center">
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FF6B35] shadow-[0_3px_12px_rgba(255,107,53,0.3)]">
-          <Sparkles size={20} className="text-white" />
+          <BrandIcon size={29} />
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-[#13100E] sm:text-3xl">
           About {siteConfig.name}

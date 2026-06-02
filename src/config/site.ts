@@ -7,14 +7,14 @@
 import { clientEnv } from '@/config/env'
 
 export const siteConfig = {
-  name: 'NewGenPlus',
+  name: 'NeuwGenX',
   tagline: 'Discover & copy the best AI prompts',
   description:
     'A free, curated library of high-quality AI prompts. Browse visually, copy instantly, and create with the best models — no account required.',
   /** Absolute base URL, no trailing slash. */
   url: clientEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, ''),
   /** Default social handle for Twitter cards (no @). */
-  twitter: 'newgenplus',
+  twitter: 'NeuwGenX',
   /** Default OG image path (generated route is added in the SEO phase). */
   ogImage: '/opengraph-image',
   /** BCP-47 locale used for OG/Twitter and html lang. */

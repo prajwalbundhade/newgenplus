@@ -28,7 +28,7 @@ import type { Metadata } from 'next'
 import type { ResourceRow } from '@/types/database.types'
 
 export const metadata: Metadata = {
-  title: 'Prompts — NewGenPlus Admin',
+  title: 'Prompts — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

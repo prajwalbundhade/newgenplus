@@ -1,5 +1,5 @@
 /**
- * Database type definitions for NewGenPlus.
+ * Database type definitions for NeuwGenX.
  *
  * This file is the source of truth for all DB types used across the app.
  * Regenerate with:
