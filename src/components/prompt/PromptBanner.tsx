@@ -20,7 +20,7 @@ const BANNERS = [
         eyebrow: 'Community',
         heading: 'Follow us on Instagram',
         body: 'Daily prompt inspiration, tips and behind-the-scenes on our IG channel. Join 10k+ followers.',
-        cta: { label: 'Follow @yourhandle', href: 'https://instagram.com/yourhandle', external: true },
+        cta: { label: 'Follow @neuwgen_x', href: 'https://www.instagram.com/neuwgen_x/', external: true },
         theme: 'warm',
     },
     {

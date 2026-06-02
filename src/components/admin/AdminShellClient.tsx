@@ -103,7 +103,7 @@ export function AdminShellClient({ email, role, children }: AdminShellClientProp
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF6B35]">
               <Sparkles size={14} className="text-white" />
             </span>
-            <span className="text-sm font-bold tracking-tight text-[#111111]">NewGenPlus</span>
+            <span className="text-sm font-bold tracking-tight text-[#111111]">NeuwGenX</span>
             <span className="rounded-full bg-[#FFF0E8] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[#FF6B35]">
               Admin
             </span>
@@ -140,7 +140,7 @@ function SidebarContent({
             <Sparkles size={14} className="text-white" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm font-bold tracking-tight text-[#111111]">NewGenPlus</span>
+            <span className="text-sm font-bold tracking-tight text-[#111111]">NeuwGenX</span>
             <span className="rounded-full bg-[#FFF0E8] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[#FF6B35]">
               Admin
             </span>

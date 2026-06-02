@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 002: Core Tables
+-- NeuwGenX — Migration 002: Core Tables
 -- =============================================================================
 -- Run order: 2 of 5
 -- Description: Creates all core domain tables.
@@ -105,7 +105,7 @@ CREATE TABLE resources (
   slug          TEXT           NOT NULL UNIQUE,
   description   TEXT,
   prompt_text   TEXT,                        -- The copyable prompt content
-  creator_name  TEXT           NOT NULL DEFAULT 'NewGenPlus',
+  creator_name  TEXT           NOT NULL DEFAULT 'NeuwGenX',
 
   -- Taxonomy
   category_id   UUID           REFERENCES categories(id) ON DELETE SET NULL,

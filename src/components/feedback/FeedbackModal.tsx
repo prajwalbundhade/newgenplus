@@ -142,7 +142,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
         },
         body: JSON.stringify({
           access_key: accessKey,
-          subject: `[NewGenPlus] ${type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())} — ${name.trim() || 'Anonymous'}`,
+          subject: `[NeuwGenX] ${type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())} — ${name.trim() || 'Anonymous'}`,
           from_name: name.trim() || 'Anonymous Visitor',
           ...(email.trim() ? { email: email.trim(), replyto: email.trim() } : {}),
           feedback_type: type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()),
@@ -385,7 +385,7 @@ function SuccessState({ onClose }: { onClose: () => void }) {
         Thank you!
       </h3>
       <p className="mb-6 max-w-xs text-sm leading-relaxed text-[#666666]">
-        Thank you for helping improve NewGenPlus.
+        Thank you for helping improve NeuwGenX.
       </p>
       <button
         type="button"

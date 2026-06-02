@@ -1,4 +1,4 @@
-# NewGenPlus — Database Design Document
+# NeuwGenX — Database Design Document
 
 **Version:** 1.0  
 **Engineer:** Senior Backend (Supabase / PostgreSQL)  

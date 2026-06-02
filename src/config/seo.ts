@@ -40,8 +40,8 @@ export const verification = {
  * Edit these to the platform's real profiles as they go live.
  */
 export const socialProfiles: string[] = [
-  // 'https://twitter.com/newgenplus',
-  // 'https://www.linkedin.com/company/newgenplus',
+  // 'https://twitter.com/NeuwGenX',
+  // 'https://www.linkedin.com/company/NeuwGenX',
 ]
 
 /** Canonical OG image dimensions (1.91:1, the Facebook/Twitter sweet spot). */

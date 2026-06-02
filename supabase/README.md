@@ -1,4 +1,4 @@
-# NewGenPlus — Supabase Database
+# NeuwGenX — Supabase Database
 
 ## Migration Run Order
 

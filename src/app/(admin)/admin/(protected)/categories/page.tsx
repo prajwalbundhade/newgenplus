@@ -12,7 +12,7 @@ import type { Metadata } from 'next'
 import type { CategoryRow } from '@/types/database.types'
 
 export const metadata: Metadata = {
-  title: 'Categories — NewGenPlus Admin',
+  title: 'Categories — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

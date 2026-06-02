@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 001: Extensions & Custom Types
+-- NeuwGenX — Migration 001: Extensions & Custom Types
 -- =============================================================================
 -- Run order: 1 of 5
 -- Description: Enable required Postgres extensions and define all custom

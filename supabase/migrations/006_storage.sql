@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 006: Storage Buckets & Policies
+-- NeuwGenX — Migration 006: Storage Buckets & Policies
 -- =============================================================================
 -- Run order: 6 of 6
 -- Description:

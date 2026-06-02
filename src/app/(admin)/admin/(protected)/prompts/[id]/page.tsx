@@ -15,7 +15,7 @@ import {
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Edit Prompt — NewGenPlus Admin',
+  title: 'Edit Prompt — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

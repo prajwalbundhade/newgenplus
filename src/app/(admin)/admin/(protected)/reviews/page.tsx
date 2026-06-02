@@ -15,7 +15,7 @@ import type { Metadata } from 'next'
 import type { ReviewRow } from '@/types/database.types'
 
 export const metadata: Metadata = {
-  title: 'Reviews — NewGenPlus Admin',
+  title: 'Reviews — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

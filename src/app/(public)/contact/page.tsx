@@ -18,7 +18,7 @@ const CONTACT_EMAIL = 'newgenstudiosbiz@gmail.com'
 export const metadata: Metadata = buildMetadata({
   title: 'Contact Us',
   description:
-    'Contact NewGenPlus for support, partnerships, feedback, prompt submissions, and business inquiries.',
+    'Contact NeuwGenX for support, partnerships, feedback, prompt submissions, and business inquiries.',
   path: routes.contact,
   keywords: [
     'contact',
@@ -55,9 +55,9 @@ const faqs = [
       'We are open to collaborations with creators, AI tool providers, and brands aligned with our mission. Send us a message outlining your proposal.',
   },
   {
-    question: 'Is there a cost to use NewGenPlus?',
+    question: 'Is there a cost to use NeuwGenX?',
     answer:
-      'NewGenPlus is completely free to browse and use. No account is required to discover and copy prompts.',
+      'NeuwGenX is completely free to browse and use. No account is required to discover and copy prompts.',
   },
 ]
 
@@ -68,7 +68,7 @@ function contactPageSchema() {
     '@id': `${siteConfig.url}/contact#contactpage`,
     name: `Contact ${siteConfig.name}`,
     description:
-      'Contact NewGenPlus for support, partnerships, feedback, prompt submissions, and business inquiries.',
+      'Contact NeuwGenX for support, partnerships, feedback, prompt submissions, and business inquiries.',
     url: `${siteConfig.url}/contact`,
     mainEntity: {
       '@type': 'Organization',

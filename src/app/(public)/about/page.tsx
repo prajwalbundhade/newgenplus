@@ -1,7 +1,7 @@
 /**
  * About page — /about
  *
- * Static informational page describing NewGenPlus, its mission,
+ * Static informational page describing NeuwGenX, its mission,
  * supported platforms, and goals.
  */
 
@@ -14,10 +14,10 @@ import { siteConfig } from '@/config/site'
 export const metadata: Metadata = buildMetadata({
   title: 'About',
   description:
-    'Learn about NewGenPlus — a curated library of high-quality AI prompts designed to help creators, designers, marketers, developers, and AI enthusiasts discover better prompts and create better results.',
+    'Learn about NeuwGenX — a curated library of high-quality AI prompts designed to help creators, designers, marketers, developers, and AI enthusiasts discover better prompts and create better results.',
   path: routes.about,
   keywords: [
-    'about NewGenPlus',
+    'about NeuwGenX',
     'AI prompt library',
     'prompt discovery platform',
     'AI tools',

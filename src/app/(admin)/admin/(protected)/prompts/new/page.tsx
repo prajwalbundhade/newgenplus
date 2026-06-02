@@ -10,7 +10,7 @@ import { listCategoryOptions, listModelOptions } from '@/features/admin/queries/
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'New Prompt — NewGenPlus Admin',
+  title: 'New Prompt — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

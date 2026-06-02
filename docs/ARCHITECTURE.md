@@ -1,4 +1,4 @@
-# NewGenPlus — Technical Architecture Document
+# NeuwGenX — Technical Architecture Document
 
 **Version:** 1.0
 **Status:** Foundational Architecture (Pre-Implementation)
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-NewGenPlus is a free, admin-curated AI prompt discovery platform with a Pinterest-style visual discovery experience and Apple-level interaction simplicity. It is explicitly **not** a marketplace: there are no transactions, no seller accounts, and no public uploads in V1. The platform optimizes for three things above all else: **speed**, **SEO discoverability**, and **frictionless copying**.
+NeuwGenX is a free, admin-curated AI prompt discovery platform with a Pinterest-style visual discovery experience and Apple-level interaction simplicity. It is explicitly **not** a marketplace: there are no transactions, no seller accounts, and no public uploads in V1. The platform optimizes for three things above all else: **speed**, **SEO discoverability**, and **frictionless copying**.
 
 The architecture is built on a content-read-heavy model. The vast majority of traffic is anonymous read traffic (browsing, searching, copying), while writes are limited to admin content management and lightly-throttled anonymous review submissions. This asymmetry drives every architectural decision below — aggressive static generation, edge caching, denormalized read counters, and a thin write path.
 
@@ -79,7 +79,7 @@ A **server-first, statically-biased Next.js application** backed by Supabase as 
 A feature-oriented structure inside the App Router, with shared primitives separated from feature modules.
 
 ```
-newgenplus/
+NeuwGenX/
 ├── public/                      # Static assets, favicons, robots, og defaults
 ├── src/
 │   ├── app/                     # Next.js App Router (routes only)
@@ -617,4 +617,4 @@ Keep the dependency surface intentionally small. Every dependency is a performan
 
 ---
 
-This document is the authoritative architectural reference for NewGenPlus V1 and the foundation for subsequent feature phases. Implementation should proceed phase-by-phase per §13, with each phase validated against the performance, SEO, and security best practices in §16 before progressing.
+This document is the authoritative architectural reference for NeuwGenX V1 and the foundation for subsequent feature phases. Implementation should proceed phase-by-phase per §13, with each phase validated against the performance, SEO, and security best practices in §16 before progressing.

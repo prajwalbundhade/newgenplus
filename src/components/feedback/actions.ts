@@ -51,7 +51,7 @@ export async function submitFeedback(input: FeedbackInput): Promise<FeedbackResu
 
   const payload = {
     access_key: accessKey,
-    subject: `[NewGenPlus] ${TYPE_LABELS[input.type]} — ${input.name || 'Anonymous'}`,
+    subject: `[NeuwGenX] ${TYPE_LABELS[input.type]} — ${input.name || 'Anonymous'}`,
     from_name: input.name || 'Anonymous Visitor',
     ...(input.email ? { email: input.email, replyto: input.email } : {}),
     feedback_type: TYPE_LABELS[input.type],

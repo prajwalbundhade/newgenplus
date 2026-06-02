@@ -47,7 +47,7 @@ export const PromptCreateSchema = z.object({
   title: z.string().trim().min(1, 'Title is required.').max(300),
   description: z.string().trim().max(2000).optional().or(z.literal('')),
   prompt_text: z.string().trim().min(1, 'Prompt text is required.').max(8000),
-  creator_name: z.string().trim().min(1).max(100).default('NewGenPlus'),
+  creator_name: z.string().trim().min(1).max(100).default('NeuwGenX'),
   resource_type: z.enum(RESOURCE_TYPES).default('image'),
   category_id: requiredId('Category'),
   model_id: requiredId('Model'),

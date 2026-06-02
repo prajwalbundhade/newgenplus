@@ -4,7 +4,7 @@
  */
 
 export const metadata = {
-  title: 'Admin Login — NewGenPlus',
+  title: 'Admin Login — NeuwGenX',
   robots: 'noindex, nofollow',
 }
 

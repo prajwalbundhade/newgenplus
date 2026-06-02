@@ -19,7 +19,7 @@ import type { Metadata } from 'next'
 import type { ResourceRow, ReviewRow } from '@/types/database.types'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — NewGenPlus Admin',
+  title: 'Dashboard — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 
@@ -90,7 +90,7 @@ export default async function AdminDashboardPage() {
     <div className="min-h-full">
       <PageHeader
         title={`${greeting}, ${session?.email?.split('@')[0] ?? 'Admin'}`}
-        description="Here's what's happening with NewGenPlus today."
+        description="Here's what's happening with NeuwGenX today."
       />
 
       <Separator />

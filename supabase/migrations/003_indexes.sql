@@ -1,5 +1,5 @@
 -- =============================================================================
--- NewGenPlus — Migration 003: Indexes
+-- NeuwGenX — Migration 003: Indexes
 -- =============================================================================
 -- Run order: 3 of 5
 -- Description: All indexes for query performance.

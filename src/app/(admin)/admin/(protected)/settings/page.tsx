@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Settings — NewGenPlus Admin',
+  title: 'Settings — NeuwGenX Admin',
   robots: 'noindex, nofollow',
 }
 

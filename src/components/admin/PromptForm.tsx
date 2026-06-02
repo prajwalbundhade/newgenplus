@@ -237,8 +237,8 @@ export function PromptForm({ mode, categories, models, resource, media }: Prompt
             <Field label="Creator name">
               <Input
                 name="creator_name"
-                defaultValue={resource?.creator_name ?? 'NewGenPlus'}
-                placeholder="NewGenPlus"
+                defaultValue={resource?.creator_name ?? 'NeuwGenX'}
+                placeholder="NeuwGenX"
               />
             </Field>
 
