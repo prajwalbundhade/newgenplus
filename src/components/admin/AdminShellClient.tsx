@@ -13,8 +13,9 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Sparkles, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { BrandIcon } from '@/components/brand/BrandIcon'
 import { NavItem, type NavIconKey } from './NavItem'
 import { LogoutButton } from './LogoutButton'
 import { Badge } from '@/components/ui/badge'
@@ -101,7 +102,7 @@ export function AdminShellClient({ email, role, children }: AdminShellClientProp
           </button>
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF6B35]">
-              <Sparkles size={14} className="text-white" />
+              <BrandIcon size={17} />
             </span>
             <span className="text-sm font-bold tracking-tight text-[#111111]">NeuwGenX</span>
             <span className="rounded-full bg-[#FFF0E8] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-[#FF6B35]">
@@ -137,7 +138,7 @@ function SidebarContent({
       <div className="flex h-14 items-center justify-between gap-2.5 border-b border-[#F0EBE5] px-5">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FF6B35]">
-            <Sparkles size={14} className="text-white" />
+            <BrandIcon size={17} />
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-sm font-bold tracking-tight text-[#111111]">NeuwGenX</span>

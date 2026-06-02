@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
 import { siteConfig } from '@/config/site'
-import { routes } from '@/config/routes'
+import { BrandIcon } from '@/components/brand/BrandIcon'
 
 const LINKS = [
   { label: 'About', href: '/about' },
@@ -20,7 +19,7 @@ export function PublicFooter() {
           <div className="flex flex-col items-center text-center">
 
             <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#FF6B35] shadow-[0_2px_8px_rgba(255,107,53,0.25)]">
-              <Sparkles size={18} className="text-white" />
+              <BrandIcon size={25} />
             </div>
 
             <h3 className="text-base font-semibold text-[#111111]">
