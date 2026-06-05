@@ -51,6 +51,7 @@ export interface PromptDetailVM extends PromptCardVM {
   reviewCount: number
   publishedAt: string | null
   categoryId: string | null
+  modelId: string | null
   category: { name: string; slug: string } | null
   model: { name: string; slug: string, logo_path: string | null } | null
 }
@@ -241,6 +242,7 @@ export async function getPromptBySlug(slug: string): Promise<PromptDetailVM | nu
     reviewCount: row.review_count,
     publishedAt: row.published_at,
     categoryId: row.category_id,
+    modelId: row.model_id,
     category: row.categories,
     model: row.models,
   }
@@ -268,6 +270,7 @@ export interface SitemapEntry {
   slug: string
   /** ISO timestamp for <lastmod>. */
   updatedAt: string | null
+  imageUrl?: string | null
 }
 
 /**
@@ -276,18 +279,53 @@ export interface SitemapEntry {
  * (Google's 50k/sitemap limit governs the upper bound — see sitemap.ts).
  */
 export async function listSitemapPrompts(limit = 45000): Promise<SitemapEntry[]> {
+  return listSitemapPromptsPage({ limit, offset: 0 })
+}
+
+export async function countPublishedPrompts(): Promise<number> {
   const supabase = createAdminClient()
-  const rows = await trySelectMany<Pick<ResourceRow, 'slug' | 'updated_at' | 'published_at'>>(
+  const { count, error } = await supabase
+    .from('resources')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'published')
+
+  if (error) {
+    console.error(`[countPublishedPrompts] ${error.message}`)
+    return 0
+  }
+
+  return count ?? 0
+}
+
+export async function listSitemapPromptsPage({
+  limit = 45000,
+  offset = 0,
+}: {
+  limit?: number
+  offset?: number
+} = {}): Promise<SitemapEntry[]> {
+  const supabase = createAdminClient()
+  const rows = await trySelectMany<
+    Pick<ResourceRow, 'slug' | 'updated_at' | 'published_at'> & {
+      resource_media: MediaPick | MediaPick[] | null
+    }
+  >(
     supabase
       .from('resources')
-      .select('slug, updated_at, published_at')
+      .select('slug, updated_at, published_at, resource_media(storage_bucket, storage_path)')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
-      .limit(limit)
+      .range(offset, offset + limit - 1)
   )
   return rows.map((r) => ({
     slug: r.slug,
     updatedAt: r.updated_at ?? r.published_at,
+    imageUrl: (() => {
+      const media = pickMedia(r.resource_media)
+      return media
+        ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.storage_path)
+        : null
+    })(),
   }))
 }
 
@@ -341,6 +379,27 @@ export async function listSimilarPrompts(
       .select(CARD_SELECT)
       .eq('status', 'published')
       .eq('category_id', categoryId)
+      .neq('id', resourceId)
+      .order('copy_count', { ascending: false })
+      .limit(limit)
+  )
+  return rows.map(toCardVM)
+}
+
+/** Related prompts for the same model, excluding the current prompt. */
+export async function listPromptsForSameModel(
+  resourceId: string,
+  modelId: string | null,
+  limit = 6
+): Promise<PromptCardVM[]> {
+  if (!modelId) return []
+  const supabase = createAdminClient()
+  const rows = await trySelectMany<ResourceWithMedia>(
+    supabase
+      .from('resources')
+      .select(CARD_SELECT)
+      .eq('status', 'published')
+      .eq('model_id', modelId)
       .neq('id', resourceId)
       .order('copy_count', { ascending: false })
       .limit(limit)

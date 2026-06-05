@@ -68,7 +68,7 @@ export function buildMetadata(input: BuildMetadataInput): Metadata {
 
   // Resolve the title for OG/Twitter where the template isn't applied.
   const resolvedTitle =
-    absoluteTitle ?? (title ? `${title} — ${siteConfig.name}` : `${siteConfig.name} — ${siteConfig.tagline}`)
+    absoluteTitle ?? (title ? `${title} - ${siteConfig.name}` : `${siteConfig.name} - ${siteConfig.tagline}`)
 
   // When the caller supplies images we set them explicitly (overriding the
   // file-based default). When omitted, we DON'T set `images` so Next inherits

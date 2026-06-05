@@ -1,9 +1,8 @@
 /**
- * Backward-compatible prompt Open Graph image route.
+ * Public prompt Open Graph image route.
  *
- * New metadata points at /og/prompt/[slug] so /api/* can stay blocked in
- * robots.txt. This route remains for older shared URLs and returns noindex
- * image responses from the shared renderer.
+ * Kept outside /api so robots.txt can block every API endpoint while social
+ * platforms can still fetch prompt share cards.
  */
 import { renderPromptOgImage } from '@/lib/seo/prompt-og-image'
 

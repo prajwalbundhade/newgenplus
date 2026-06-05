@@ -23,6 +23,9 @@ function revalidateModelSurfaces() {
   revalidatePath('/admin/models')
   revalidatePath('/admin')
   revalidatePath('/')
+  revalidatePath('/sitemap.xml')
+  revalidatePath('/sitemap-index.xml')
+  revalidatePath('/model/sitemap.xml')
 }
 
 function formToObject(formData: FormData) {

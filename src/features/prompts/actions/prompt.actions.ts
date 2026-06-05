@@ -34,6 +34,9 @@ function revalidatePromptSurfaces(slug?: string) {
   revalidatePath('/admin/prompts')
   revalidatePath('/admin')
   revalidatePath('/') // homepage discovery grid
+  revalidatePath('/sitemap.xml')
+  revalidatePath('/sitemap-index.xml')
+  revalidatePath('/prompt/sitemap/0.xml')
   if (slug) revalidatePath(`/prompt/${slug}`)
 }
 

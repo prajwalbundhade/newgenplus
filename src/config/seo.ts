@@ -32,6 +32,10 @@ export const verification = {
   google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || '',
   bing: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION?.trim() || '',
   yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION?.trim() || '',
+  baidu: process.env.NEXT_PUBLIC_BAIDU_SITE_VERIFICATION?.trim() || '',
+  pinterest: process.env.NEXT_PUBLIC_PINTEREST_SITE_VERIFICATION?.trim() || '',
+  facebookDomain:
+    process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION?.trim() || '',
 } as const
 
 /**

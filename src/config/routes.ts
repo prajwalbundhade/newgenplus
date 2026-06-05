@@ -11,6 +11,7 @@ export const routes = {
   search: (query?: string) =>
     query ? `/search?q=${encodeURIComponent(query)}` : '/search',
   prompt: (slug: string) => `/prompt/${slug}`,
+  promptOg: (slug: string) => `/og/prompt/${slug}`,
   category: (slug: string) => `/category/${slug}`,
   model: (slug: string) => `/model/${slug}`,
   about: '/about',
