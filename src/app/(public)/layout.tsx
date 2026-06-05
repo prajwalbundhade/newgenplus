@@ -19,7 +19,7 @@ export default function PublicLayout({
   return (
     <div className="flex min-h-screen flex-col bg-[#FFF9F5]">
       <PublicHeader />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-8">{children}</main>
       <PublicFooter />
     </div>
   )

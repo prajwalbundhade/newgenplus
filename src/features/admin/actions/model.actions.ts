@@ -12,7 +12,7 @@ import { guardAdmin } from '@/lib/auth-guard'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { selectOne, writePayload } from '@/lib/supabase/query'
 import { type ActionResult, ok, fail } from '@/lib/action-result'
-import { uniqueSlug } from '@/lib/utils/slug'
+import { slugify } from '@/lib/utils/slug'  // ← changed from uniqueSlug to slugify
 import {
   ModelCreateSchema,
   ModelUpdateSchema,
@@ -33,10 +33,6 @@ function formToObject(formData: FormData) {
     name: formData.get('name') ?? undefined,
     description: formData.get('description') ?? undefined,
     provider: formData.get('provider') ?? undefined,
-    // logo_path is sent as a base64 data URL by the client.
-    // - missing entry  → undefined (leave unchanged on update)
-    // - empty string   → '' (clear logo on update)
-    // - data URL       → set logo
     logo_path: formData.has('logo_path') ? formData.get('logo_path') ?? '' : undefined,
     status: formData.get('status') || undefined,
   }
@@ -61,6 +57,20 @@ export async function createModel(
   const input = parsed.data
   const supabase = createAdminClient()
 
+  // Generate clean slug from name
+  const slug = slugify(input.name)
+
+  // Check uniqueness before inserting
+  const { data: existing } = await supabase
+    .from('models')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (existing) {
+    return fail('A model with this name already exists. Please use a different name.')
+  }
+
   try {
     const created = await selectOne<ModelRow>(
       supabase
@@ -68,7 +78,7 @@ export async function createModel(
         .insert(
           writePayload({
             name: input.name,
-            slug: uniqueSlug(input.name),
+            slug,  // ← clean slug, no random suffix
             description: input.description || null,
             provider: input.provider || null,
             logo_path: input.logo_path || null,

@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-1 sm:px-6 lg:px-8">
 
       {/* Intro */}
       {/* Intro + Promo banners — shared white card */}
@@ -80,30 +80,34 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <h1 className="mb-4 text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
           Discover &amp; copy the best AI prompts
         </h1>
-        <p className="mb-4 max-w-3xl text-sm leading-6 text-[#666666]">
+        <p className="mb-4 hidden sm:block max-w-3xl lg:max-w-4xl text-xs sm:text-sm leading-6 text-[#666666]">
           {siteConfig.name} is a curated prompt discovery platform for creators
           comparing models, categories, tags, preview images, prompt text,
           ratings, and related examples before copying.
         </p>
-        <div className="mb-4 flex flex-wrap gap-2">
-          {categories.slice(0, 6).map((item) => (
-            <Link
-              key={item.slug}
-              href={routes.category(item.slug)}
-              className="rounded-full border border-[#E8E3DE] bg-[#FFFCFA] px-3 py-1 text-xs font-medium text-[#666666] hover:border-[#FFB26B] hover:text-[#111111]"
-            >
-              {item.name}
-            </Link>
-          ))}
-          {topModels.slice(0, 4).map((item) => (
-            <Link
-              key={item.slug}
-              href={routes.model(item.slug)}
-              className="rounded-full border border-[#DCE5F2] bg-[#F7FAFE] px-3 py-1 text-xs font-medium text-[#4B6B93] hover:border-[#BFD0E6] hover:text-[#111111]"
-            >
-              {item.name}
-            </Link>
-          ))}
+        <div className="mb-4 relative">
+          <div className="flex gap-2 overflow-x-auto flex-nowrap sm:flex-wrap sm:overflow-x-visible pb-1 sm:pb-0 scrollbar-none">
+            {categories.slice(0, 6).map((item) => (
+              <Link
+                key={item.slug}
+                href={routes.category(item.slug)}
+                className="shrink-0 rounded-full border border-[#E8E3DE] bg-[#FFFCFA] px-3 py-1 text-xs font-medium text-[#666666] hover:border-[#FFB26B] hover:text-[#111111]"
+              >
+                {item.name}
+              </Link>
+            ))}
+            {topModels.slice(0, 4).map((item) => (
+              <Link
+                key={item.slug}
+                href={routes.model(item.slug)}
+                className="shrink-0 rounded-full border border-[#DCE5F2] bg-[#F7FAFE] px-3 py-1 text-xs font-medium text-[#4B6B93] hover:border-[#BFD0E6] hover:text-[#111111]"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+          {/* scroll hint fade — mobile only */}
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent sm:hidden" />
         </div>
         <PromoBanners />
       </section>
