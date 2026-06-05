@@ -3,6 +3,7 @@
  */
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { Eye, Copy, Star, Tag as TagIcon, Heart, Share2, Sparkles } from 'lucide-react'
@@ -10,6 +11,7 @@ import {
   getPromptBySlug,
   listPublishedSlugs,
   listSimilarPrompts,
+  listPromptsForSameModel,
   listApprovedReviews,
 } from '@/features/prompts/queries/prompt.queries'
 import { siteConfig } from '@/config/site'
@@ -17,7 +19,8 @@ import { routes } from '@/config/routes'
 import { formatCount } from '@/lib/utils'
 import { buildMetadata } from '@/lib/seo/metadata'
 import { JsonLd } from '@/lib/seo/JsonLd'
-import { promptSchema, breadcrumbSchema } from '@/lib/seo/schema'
+import { promptSchema, breadcrumbSchema, imageObjectSchema } from '@/lib/seo/schema'
+import { buildPromptAiContent } from '@/lib/seo/content'
 import { CopyButton } from '@/components/prompt/CopyButton'
 import { LikeButton } from '@/components/prompt/LikeButton'
 import { ShareButton } from '@/components/prompt/Sharebutton'
@@ -46,10 +49,10 @@ function promptDescription(prompt: {
   if (prompt.description?.trim()) return prompt.description.trim()
   if (prompt.promptText?.trim()) {
     const text = prompt.promptText.trim().replace(/\s+/g, ' ')
-    return text.length > 155 ? `${text.slice(0, 152)}…` : text
+    return text.length > 155 ? `${text.slice(0, 152)}...` : text
   }
   const model = prompt.modelName ? ` for ${prompt.modelName}` : ''
-  return `${prompt.title} — a curated AI prompt${model} on ${siteConfig.name}. Copy it free, no account required.`
+  return `${prompt.title} - a curated AI prompt${model} on ${siteConfig.name}. Copy it free, no account required.`
 }
 
 export async function generateMetadata({ params }: PromptPageProps): Promise<Metadata> {
@@ -66,8 +69,8 @@ export async function generateMetadata({ params }: PromptPageProps): Promise<Met
 
   const description = promptDescription(prompt)
   const titleWithModel = prompt.modelName
-    ? `${prompt.title} — ${prompt.modelName} Prompt`
-    : `${prompt.title} — AI Prompt`
+    ? `${prompt.title} - ${prompt.modelName} Prompt`
+    : `${prompt.title} - AI Prompt`
 
   return buildMetadata({
     title: titleWithModel,
@@ -84,7 +87,7 @@ export async function generateMetadata({ params }: PromptPageProps): Promise<Met
       {
         // Per-prompt branded share card. Falls back internally to a generic
         // card if media is missing, so this URL is always valid.
-        url: `/api/og/${prompt.slug}`,
+        url: routes.promptOg(prompt.slug),
         width: 1200,
         height: 630,
         alt: prompt.title,
@@ -100,10 +103,15 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
   const prompt = await getPromptBySlug(slug)
   if (!prompt) notFound()
 
-  const [similar, reviews] = await Promise.all([
+  const [sameCategory, sameModelAll, reviews] = await Promise.all([
     listSimilarPrompts(prompt.id, prompt.categoryId),
+    listPromptsForSameModel(prompt.id, prompt.modelId),
     listApprovedReviews(prompt.id),
   ])
+
+  const sameCategoryIds = new Set(sameCategory.map((item) => item.id))
+  const sameModel = sameModelAll.filter((item) => !sameCategoryIds.has(item.id))
+  const aiContent = buildPromptAiContent(prompt, reviews, sameCategory, sameModel)
 
   // Build JSON-LD from real content: CreativeWork (+ aggregateRating/reviews
   // only when approved reviews exist) and a breadcrumb trail.
@@ -112,6 +120,8 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
     slug: prompt.slug,
     description: prompt.description,
     imageUrl: prompt.imageUrl,
+    imageWidth: prompt.width,
+    imageHeight: prompt.height,
     creatorName: prompt.creatorName,
     modelName: prompt.model?.name ?? prompt.modelName,
     publishedAt: prompt.publishedAt,
@@ -134,9 +144,21 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
     { name: prompt.title, path: routes.prompt(prompt.slug) },
   ])
 
+  const ldImage = prompt.imageUrl
+    ? imageObjectSchema({
+        pagePath: routes.prompt(prompt.slug),
+        title: prompt.title,
+        description: prompt.description,
+        imageUrl: prompt.imageUrl,
+        width: prompt.width,
+        height: prompt.height,
+      })
+    : null
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pt-4 pb-6 sm:px-6 lg:px-8">
       <JsonLd id="ld-prompt" schema={ldPrompt} />
+      {ldImage ? <JsonLd id="ld-prompt-image" schema={ldImage} /> : null}
       <JsonLd id="ld-prompt-breadcrumb" schema={ldBreadcrumb} />
       <ViewTracker
         resourceId={prompt.id}
@@ -170,11 +192,17 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
 
         <div className="overflow-hidden rounded-3xl bg-transparent lg:h-[calc(100vh-8rem)] h-[400px]">
           {prompt.imageUrl ? (
-            <div className="flex h-full w-full items-center justify-center">
-              <img
+            <div className="relative h-full w-full">
+              <Image
                 src={prompt.imageUrl}
                 alt={prompt.title}
-                className="max-h-full max-w-full rounded-3xl object-contain shadow-sm"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="rounded-3xl object-contain shadow-sm"
+                {...(prompt.blurDataUrl
+                  ? { placeholder: 'blur' as const, blurDataURL: prompt.blurDataUrl }
+                  : {})}
               />
             </div>
           ) : (
@@ -306,6 +334,53 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
         </div>
       </div>
 
+      <section className="mt-8 rounded-2xl border border-[#F0EBE5] bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold tracking-tight text-[#111111]">
+          What this prompt does
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#555555]">
+          {aiContent.whatItDoes}
+        </p>
+
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[#111111]">Best use cases</h3>
+            <ul className="mt-2 space-y-2 text-sm leading-6 text-[#555555]">
+              {aiContent.useCases.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6B35]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-[#111111]">Recommended models</h3>
+            <ul className="mt-2 space-y-2 text-sm leading-6 text-[#555555]">
+              {aiContent.recommendedModels.map((model) => (
+                <li key={model} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6B35]" />
+                  <span>{model}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-[#111111]">Tips</h3>
+            <ul className="mt-2 space-y-2 text-sm leading-6 text-[#555555]">
+              {aiContent.tips.map((tip) => (
+                <li key={tip} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6B35]" />
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* ── Reviews ── */}
       {reviews.length > 0 && (
         <section className="mt-10">
@@ -346,11 +421,43 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
         </section>
       )}
 
-      {/* ── Similar prompts ── */}
-      {similar.length > 0 && (
+      {/* ── Same-category prompts ── */}
+      {sameCategory.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-[15px] font-semibold text-[#111111]">More like this</h2>
-          <PromptGrid prompts={similar} />
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[15px] font-semibold text-[#111111]">
+              More {prompt.category?.name ?? 'related'} prompts
+            </h2>
+            {prompt.category ? (
+              <Link
+                href={routes.category(prompt.category.slug)}
+                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
+              >
+                View category
+              </Link>
+            ) : null}
+          </div>
+          <PromptGrid prompts={sameCategory} />
+        </section>
+      )}
+
+      {/* ── Same-model prompts ── */}
+      {sameModel.length > 0 && (
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[15px] font-semibold text-[#111111]">
+              More prompts for {prompt.model?.name ?? prompt.modelName ?? 'this model'}
+            </h2>
+            {prompt.model ? (
+              <Link
+                href={routes.model(prompt.model.slug)}
+                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
+              >
+                View model
+              </Link>
+            ) : null}
+          </div>
+          <PromptGrid prompts={sameModel} />
         </section>
       )}
     </div>

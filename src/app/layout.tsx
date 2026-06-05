@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
-    template: `%s — ${siteConfig.name}`,
+    default: `${siteConfig.name} - ${siteConfig.tagline}`,
+    template: `%s - ${siteConfig.name}`,
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
+    title: `${siteConfig.name} - ${siteConfig.tagline}`,
     description: siteConfig.description,
     url: siteConfig.url,
     locale: siteConfig.locale,
@@ -46,13 +46,13 @@ export const metadata: Metadata = {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} — ${siteConfig.tagline}`,
+        alt: `${siteConfig.name} - ${siteConfig.tagline}`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
+    title: `${siteConfig.name} - ${siteConfig.tagline}`,
     description: siteConfig.description,
     site: `@${siteConfig.twitter}`,
     creator: `@${siteConfig.twitter}`,
@@ -73,7 +73,21 @@ export const metadata: Metadata = {
   verification: {
     ...(verification.google ? { google: verification.google } : {}),
     ...(verification.yandex ? { yandex: verification.yandex } : {}),
-    ...(verification.bing ? { other: { 'msvalidate.01': verification.bing } } : {}),
+    ...(verification.bing ||
+    verification.baidu ||
+    verification.pinterest ||
+    verification.facebookDomain
+      ? {
+          other: {
+            ...(verification.bing ? { 'msvalidate.01': verification.bing } : {}),
+            ...(verification.baidu ? { 'baidu-site-verification': verification.baidu } : {}),
+            ...(verification.pinterest ? { 'p:domain_verify': verification.pinterest } : {}),
+            ...(verification.facebookDomain
+              ? { 'facebook-domain-verification': verification.facebookDomain }
+              : {}),
+          },
+        }
+      : {}),
   },
 }
 

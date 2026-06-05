@@ -64,6 +64,14 @@ export async function listPublishedCategories(): Promise<TaxonomyItem[]> {
   )
 }
 
+export async function listRelatedCategories(
+  currentSlug: string,
+  limit = 6
+): Promise<TaxonomyItem[]> {
+  const categories = await listPublishedCategories()
+  return categories.filter((category) => category.slug !== currentSlug).slice(0, limit)
+}
+
 export async function listPublishedModels(): Promise<TaxonomyItem[]> {
   const supabase = createAdminClient()
   return trySelectMany<TaxonomyItem>(
@@ -73,6 +81,14 @@ export async function listPublishedModels(): Promise<TaxonomyItem[]> {
       .eq('status', 'published')
       .order('name', { ascending: true })
   )
+}
+
+export async function listRelatedModels(
+  currentSlug: string,
+  limit = 6
+): Promise<TaxonomyItemWithCount[]> {
+  const models = await listTopModelsByPromptCount(limit + 1)
+  return models.filter((model) => model.slug !== currentSlug).slice(0, limit)
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryRow | null> {

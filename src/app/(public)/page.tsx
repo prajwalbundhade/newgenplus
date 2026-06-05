@@ -13,6 +13,7 @@
  *   [Intro] [Banners] [Full-width grid] [Sticky bottom filter button]
  */
 
+import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
 import { siteConfig } from '@/config/site'
@@ -40,7 +41,7 @@ const PAGE_SIZE = 24
 // ?sort) never change the canonical, so all filtered permutations consolidate
 // to `/` for indexing.
 export const metadata: Metadata = buildMetadata({
-  absoluteTitle: `${siteConfig.name} — ${siteConfig.tagline}`,
+  absoluteTitle: `${siteConfig.name} - ${siteConfig.tagline}`,
   description: siteConfig.description,
   path: routes.home,
 })
@@ -79,6 +80,31 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <h1 className="mb-4 text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
           Discover &amp; copy the best AI prompts
         </h1>
+        <p className="mb-4 max-w-3xl text-sm leading-6 text-[#666666]">
+          {siteConfig.name} is a curated prompt discovery platform for creators
+          comparing models, categories, tags, preview images, prompt text,
+          ratings, and related examples before copying.
+        </p>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {categories.slice(0, 6).map((item) => (
+            <Link
+              key={item.slug}
+              href={routes.category(item.slug)}
+              className="rounded-full border border-[#E8E3DE] bg-[#FFFCFA] px-3 py-1 text-xs font-medium text-[#666666] hover:border-[#FFB26B] hover:text-[#111111]"
+            >
+              {item.name}
+            </Link>
+          ))}
+          {topModels.slice(0, 4).map((item) => (
+            <Link
+              key={item.slug}
+              href={routes.model(item.slug)}
+              className="rounded-full border border-[#DCE5F2] bg-[#F7FAFE] px-3 py-1 text-xs font-medium text-[#4B6B93] hover:border-[#BFD0E6] hover:text-[#111111]"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
         <PromoBanners />
       </section>
 

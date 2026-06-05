@@ -9,16 +9,17 @@ import type { Metadata } from 'next'
 import { Mail, Clock, MessageCircle, HelpCircle } from 'lucide-react'
 import { buildMetadata } from '@/lib/seo/metadata'
 import { routes } from '@/config/routes'
-import { siteConfig } from '@/config/site'
 import { JsonLd } from '@/lib/seo/JsonLd'
+import { contactPageSchema, faqPageSchema } from '@/lib/seo/schema'
 import { CopyEmailButton } from '@/components/contact/CopyEmailButton'
 
 const CONTACT_EMAIL = 'newgenstudiosbiz@gmail.com'
+const CONTACT_DESCRIPTION =
+  'Contact NeuwGenX for support, partnerships, feedback, prompt submissions, and business inquiries.'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Contact Us',
-  description:
-    'Contact NeuwGenX for support, partnerships, feedback, prompt submissions, and business inquiries.',
+  description: CONTACT_DESCRIPTION,
   path: routes.contact,
   keywords: [
     'contact',
@@ -61,35 +62,19 @@ const faqs = [
   },
 ]
 
-function contactPageSchema() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'ContactPage',
-    '@id': `${siteConfig.url}/contact#contactpage`,
-    name: `Contact ${siteConfig.name}`,
-    description:
-      'Contact NeuwGenX for support, partnerships, feedback, prompt submissions, and business inquiries.',
-    url: `${siteConfig.url}/contact`,
-    mainEntity: {
-      '@type': 'Organization',
-      '@id': `${siteConfig.url}/#organization`,
-      name: siteConfig.name,
-      url: siteConfig.url,
-      email: CONTACT_EMAIL,
-      contactPoint: {
-        '@type': 'ContactPoint',
-        email: CONTACT_EMAIL,
-        contactType: 'customer support',
-        availableLanguage: 'English',
-      },
-    },
-  }
-}
-
 export default function ContactPage() {
+  const ldFaq = faqPageSchema(faqs)
+
   return (
     <>
-      <JsonLd id="ld-contact-page" schema={contactPageSchema()} />
+      <JsonLd
+        id="ld-contact-page"
+        schema={contactPageSchema({
+          email: CONTACT_EMAIL,
+          description: CONTACT_DESCRIPTION,
+        })}
+      />
+      {ldFaq ? <JsonLd id="ld-contact-faq" schema={ldFaq} /> : null}
 
       <article className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:py-20">
         {/* Page header */}

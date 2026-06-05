@@ -24,6 +24,9 @@ function revalidateCategorySurfaces() {
   revalidatePath('/admin/categories')
   revalidatePath('/admin')
   revalidatePath('/')
+  revalidatePath('/sitemap.xml')
+  revalidatePath('/sitemap-index.xml')
+  revalidatePath('/category/sitemap.xml')
 }
 
 function formToObject(formData: FormData) {

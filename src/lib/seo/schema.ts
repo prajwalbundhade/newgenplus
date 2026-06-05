@@ -10,8 +10,11 @@
  *   - Organization        (site-wide, root layout)
  *   - WebSite + SearchAction (site-wide, enables the sitelinks search box)
  *   - CreativeWork        (prompt detail) with optional aggregateRating + reviews
+ *   - ImageObject         (prompt media)
  *   - CollectionPage      (category / model landing pages)
  *   - BreadcrumbList      (prompt / category / model)
+ *   - FAQPage             (visible FAQ sections)
+ *   - ContactPage         (contact route)
  */
 import { siteConfig } from '@/config/site'
 import { socialProfiles } from '@/config/seo'
@@ -104,6 +107,8 @@ export interface PromptSchemaInput {
   slug: string
   description: string | null
   imageUrl: string | null
+  imageWidth?: number | null
+  imageHeight?: number | null
   creatorName: string
   modelName: string | null
   publishedAt: string | null
@@ -116,6 +121,7 @@ export interface PromptSchemaInput {
 
 export function promptSchema(input: PromptSchemaInput): JsonLdObject {
   const url = abs(routes.prompt(input.slug))
+  const imageId = `${url}#primaryimage`
 
   const schema: JsonLdObject = {
     '@context': 'https://schema.org',
@@ -125,7 +131,7 @@ export function promptSchema(input: PromptSchemaInput): JsonLdObject {
     headline: input.title,
     url,
     ...(input.description ? { description: input.description } : {}),
-    ...(input.imageUrl ? { image: input.imageUrl } : {}),
+    ...(input.imageUrl ? { image: { '@id': imageId } } : {}),
     author: {
       '@type': 'Person',
       name: input.creatorName,
@@ -171,6 +177,30 @@ export function promptSchema(input: PromptSchemaInput): JsonLdObject {
   }
 
   return schema
+}
+
+export function imageObjectSchema(input: {
+  pagePath: string
+  title: string
+  description: string | null
+  imageUrl: string
+  width?: number | null
+  height?: number | null
+}): JsonLdObject {
+  const pageUrl = abs(input.pagePath)
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ImageObject',
+    '@id': `${pageUrl}#primaryimage`,
+    contentUrl: input.imageUrl,
+    url: input.imageUrl,
+    name: input.title,
+    ...(input.description ? { caption: input.description } : {}),
+    ...(input.width ? { width: input.width } : {}),
+    ...(input.height ? { height: input.height } : {}),
+    representativeOfPage: true,
+    isPartOf: { '@id': `${pageUrl}#creativework` },
+  }
 }
 
 function dedupeKeywords(input: PromptSchemaInput): string[] {
@@ -221,5 +251,67 @@ export function collectionPageSchema(input: CollectionSchemaInput): JsonLdObject
           },
         }
       : {}),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FAQPage
+// ---------------------------------------------------------------------------
+
+export interface FaqSchemaItem {
+  question: string
+  answer: string
+}
+
+export function faqPageSchema(items: FaqSchemaItem[]): JsonLdObject | null {
+  const validItems = items.filter(
+    (item) => item.question.trim().length > 0 && item.answer.trim().length > 0
+  )
+  if (validItems.length === 0) return null
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: validItems.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ContactPage
+// ---------------------------------------------------------------------------
+
+export function contactPageSchema(input: {
+  email: string
+  description: string
+}): JsonLdObject {
+  const url = abs(routes.contact)
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    '@id': `${url}#contactpage`,
+    name: `Contact ${siteConfig.name}`,
+    description: input.description,
+    url,
+    isPartOf: { '@id': `${siteConfig.url}/#website` },
+    mainEntity: {
+      '@type': 'Organization',
+      '@id': `${siteConfig.url}/#organization`,
+      name: siteConfig.name,
+      url: siteConfig.url,
+      email: input.email,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: input.email,
+        contactType: 'customer support',
+        availableLanguage: 'English',
+      },
+    },
   }
 }
