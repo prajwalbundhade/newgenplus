@@ -24,6 +24,7 @@ export function PublicHeader() {
       <Link
         href={routes.home}
         className="flex shrink-0 items-center gap-2.5 no-underline"
+        aria-label={`${siteConfig.name} - Home`}
       >
         <span
           className="flex h-[33px] w-[33px] items-center justify-center rounded-[9px] bg-[#FF6B35]"

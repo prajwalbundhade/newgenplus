@@ -1,19 +1,11 @@
 'use server'
 
-/**
- * Category admin Server Actions — create / update / delete.
- *
- * Authorization: guardAdmin() on every action.
- * Data access: service-role client (admin context).
- * Returns typed ActionResult; revalidates affected surfaces.
- */
-
 import { revalidatePath } from 'next/cache'
 import { guardAdmin } from '@/lib/auth-guard'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { selectOne, writePayload } from '@/lib/supabase/query'
 import { type ActionResult, ok, fail } from '@/lib/action-result'
-import { uniqueSlug } from '@/lib/utils/slug'
+import { slugify } from '@/lib/utils/slug'  // ← changed from uniqueSlug to slugify
 import {
   CategoryCreateSchema,
   CategoryUpdateSchema,
@@ -58,6 +50,20 @@ export async function createCategory(
   const input = parsed.data
   const supabase = createAdminClient()
 
+  // Generate clean slug from name
+  const slug = slugify(input.name)
+
+  // Check uniqueness before inserting
+  const { data: existing } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (existing) {
+    return fail('A category with this name already exists. Please use a different name.')
+  }
+
   try {
     const created = await selectOne<CategoryRow>(
       supabase
@@ -65,7 +71,7 @@ export async function createCategory(
         .insert(
           writePayload({
             name: input.name,
-            slug: uniqueSlug(input.name),
+            slug,  // ← clean slug, no random suffix
             description: input.description || null,
             icon: input.icon || null,
             sort_order: input.sort_order,

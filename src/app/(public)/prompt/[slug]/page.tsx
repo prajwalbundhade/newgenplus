@@ -146,13 +146,13 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
 
   const ldImage = prompt.imageUrl
     ? imageObjectSchema({
-        pagePath: routes.prompt(prompt.slug),
-        title: prompt.title,
-        description: prompt.description,
-        imageUrl: prompt.imageUrl,
-        width: prompt.width,
-        height: prompt.height,
-      })
+      pagePath: routes.prompt(prompt.slug),
+      title: prompt.title,
+      description: prompt.description,
+      imageUrl: prompt.imageUrl,
+      width: prompt.width,
+      height: prompt.height,
+    })
     : null
 
   return (
@@ -334,6 +334,85 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
         </div>
       </div>
 
+      {/* ── Same-category prompts ── */}
+      {sameCategory.length > 0 && (
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[15px] font-semibold text-[#111111]">
+              More {prompt.category?.name ?? 'related'} prompts
+            </h2>
+            {prompt.category ? (
+              <Link
+                href={routes.category(prompt.category.slug)}
+                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
+              >
+                View category
+              </Link>
+            ) : null}
+          </div>
+          <PromptGrid prompts={sameCategory} />
+        </section>
+      )}
+
+      {/* ── Reviews ── */}
+      {reviews.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-4 text-[15px] font-semibold text-[#111111]">
+            Reviews{' '}
+            <span className="text-sm font-normal text-[#999999]">({reviews.length})</span>
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="rounded-xl border border-[#F0EBE5] bg-white p-4"
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[13px] font-medium text-[#111111]">
+                    {review.reviewerName}
+                  </span>
+                  {review.rating !== null && (
+                    <span className="flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={11}
+                          className={
+                            i < review.rating!
+                              ? 'fill-[#FFB26B] text-[#FFB26B]'
+                              : 'text-[#E5DDD6]'
+                          }
+                        />
+                      ))}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[12.5px] leading-relaxed text-[#666666]">{review.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Same-model prompts ── */}
+      {sameModel.length > 0 && (
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[15px] font-semibold text-[#111111]">
+              More prompts for {prompt.model?.name ?? prompt.modelName ?? 'this model'}
+            </h2>
+            {prompt.model ? (
+              <Link
+                href={routes.model(prompt.model.slug)}
+                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
+              >
+                View model
+              </Link>
+            ) : null}
+          </div>
+          <PromptGrid prompts={sameModel} />
+        </section>
+      )}
       <section className="mt-8 rounded-2xl border border-[#F0EBE5] bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold tracking-tight text-[#111111]">
           What this prompt does
@@ -380,86 +459,6 @@ export default async function PromptDetailPage({ params }: PromptPageProps) {
           </div>
         </div>
       </section>
-
-      {/* ── Reviews ── */}
-      {reviews.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-4 text-[15px] font-semibold text-[#111111]">
-            Reviews{' '}
-            <span className="text-sm font-normal text-[#999999]">({reviews.length})</span>
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {reviews.map((review) => (
-              <div
-                key={review.id}
-                className="rounded-xl border border-[#F0EBE5] bg-white p-4"
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="text-[13px] font-medium text-[#111111]">
-                    {review.reviewerName}
-                  </span>
-                  {review.rating !== null && (
-                    <span className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          size={11}
-                          className={
-                            i < review.rating!
-                              ? 'fill-[#FFB26B] text-[#FFB26B]'
-                              : 'text-[#E5DDD6]'
-                          }
-                        />
-                      ))}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[12.5px] leading-relaxed text-[#666666]">{review.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Same-category prompts ── */}
-      {sameCategory.length > 0 && (
-        <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-[15px] font-semibold text-[#111111]">
-              More {prompt.category?.name ?? 'related'} prompts
-            </h2>
-            {prompt.category ? (
-              <Link
-                href={routes.category(prompt.category.slug)}
-                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
-              >
-                View category
-              </Link>
-            ) : null}
-          </div>
-          <PromptGrid prompts={sameCategory} />
-        </section>
-      )}
-
-      {/* ── Same-model prompts ── */}
-      {sameModel.length > 0 && (
-        <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-[15px] font-semibold text-[#111111]">
-              More prompts for {prompt.model?.name ?? prompt.modelName ?? 'this model'}
-            </h2>
-            {prompt.model ? (
-              <Link
-                href={routes.model(prompt.model.slug)}
-                className="text-xs font-medium text-[#FF6B35] hover:text-[#e55a25]"
-              >
-                View model
-              </Link>
-            ) : null}
-          </div>
-          <PromptGrid prompts={sameModel} />
-        </section>
-      )}
     </div>
   )
 }
