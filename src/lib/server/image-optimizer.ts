@@ -41,10 +41,10 @@ export interface OptimizationResult {
 // ---------------------------------------------------------------------------
 
 const FULL_MAX_WIDTH = 1200
-const FULL_QUALITY = 90
+const FULL_QUALITY = 100
 
 const THUMB_MAX_WIDTH = 400
-const THUMB_QUALITY = 80
+const THUMB_QUALITY = 100
 
 // ---------------------------------------------------------------------------
 // Core
