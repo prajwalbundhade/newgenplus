@@ -33,7 +33,7 @@ export function PromptCard({ prompt, priority = false }: { prompt: PromptCardVM;
         )}
         {prompt.imageUrl ? (
           <Image
-            src={prompt.imageUrl}
+            src={prompt.thumbnailUrl ?? prompt.imageUrl}
             alt={prompt.title}
             fill
             priority={priority}
