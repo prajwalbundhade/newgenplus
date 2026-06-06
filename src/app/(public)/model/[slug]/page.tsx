@@ -23,7 +23,7 @@ import { JsonLd } from '@/lib/seo/JsonLd'
 import { collectionPageSchema, breadcrumbSchema, faqPageSchema } from '@/lib/seo/schema'
 import { buildModelAiContent } from '@/lib/seo/content'
 
-export const revalidate = 120
+export const revalidate = 3600
 
 interface ModelPageProps {
   params: Promise<{ slug: string }>

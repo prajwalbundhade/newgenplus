@@ -33,7 +33,10 @@ export interface PromptCardVM {
   creatorName: string
   modelName: string | null
   modelSlug: string | null
+  /** Full-resolution image URL — used on the detail page. */
   imageUrl: string | null
+  /** Thumbnail URL — used on listing cards. Falls back to imageUrl if null (legacy records). */
+  thumbnailUrl: string | null
   blurDataUrl: string | null
   width: number | null
   height: number | null
@@ -68,7 +71,7 @@ const PARENT_BUCKET_FALLBACK = 'resource-images'
 
 type MediaPick = Pick<
   ResourceMediaRow,
-  'storage_bucket' | 'storage_path' | 'blur_data_url' | 'width' | 'height'
+  'storage_bucket' | 'storage_path' | 'thumbnail_path' | 'blur_data_url' | 'width' | 'height'
 >
 
 /**
@@ -96,6 +99,14 @@ function pickOne<T>(value: T | T[] | null | undefined): T | null {
 function toCardVM(row: ResourceWithMedia): PromptCardVM {
   const media = pickMedia(row.resource_media)
   const model = pickOne<ModelPick>(row.models)
+  const imageUrl = media
+    ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.storage_path)
+    : null
+  // Use the dedicated thumbnail for card listings; fall back to the full image
+  // for legacy records that pre-date thumbnail generation.
+  const thumbnailUrl = media?.thumbnail_path
+    ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.thumbnail_path)
+    : imageUrl
   return {
     id: row.id,
     title: row.title,
@@ -103,9 +114,8 @@ function toCardVM(row: ResourceWithMedia): PromptCardVM {
     creatorName: row.creator_name,
     modelName: model?.name ?? null,
     modelSlug: model?.slug ?? null,
-    imageUrl: media
-      ? publicStorageUrl(media.storage_bucket || PARENT_BUCKET_FALLBACK, media.storage_path)
-      : null,
+    imageUrl,
+    thumbnailUrl,
     blurDataUrl: media?.blur_data_url ?? null,
     width: media?.width ?? null,
     height: media?.height ?? null,
@@ -119,7 +129,7 @@ function toCardVM(row: ResourceWithMedia): PromptCardVM {
 
 const CARD_SELECT =
   'id, title, slug, creator_name, view_count, copy_count, like_count, avg_rating, is_featured, ' +
-  'resource_media(storage_bucket, storage_path, blur_data_url, width, height), ' +
+  'resource_media(storage_bucket, storage_path, thumbnail_path, blur_data_url, width, height), ' +
   'models(name, slug)'
 
 // ---------------------------------------------------------------------------
@@ -224,7 +234,7 @@ export async function getPromptBySlug(slug: string): Promise<PromptDetailVM | nu
     supabase
       .from('resources')
       .select(
-        '*, resource_media(storage_bucket, storage_path, blur_data_url, width, height), ' +
+        '*, resource_media(storage_bucket, storage_path, thumbnail_path, blur_data_url, width, height), ' +
         'categories(name, slug), models(name, slug, logo_path)'
       )
       .eq('slug', slug)
@@ -344,7 +354,7 @@ export async function getPromptOgData(slug: string): Promise<PromptOgData | null
     supabase
       .from('resources')
       .select(
-        'title, creator_name, resource_media(storage_bucket, storage_path, blur_data_url, width, height), models(name, slug, logo_path)'
+        'title, creator_name, resource_media(storage_bucket, storage_path, thumbnail_path, blur_data_url, width, height), models(name, slug, logo_path)'
       )
       .eq('slug', slug)
       .eq('status', 'published')

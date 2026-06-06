@@ -34,7 +34,7 @@ import { FeedToolbar } from '@/components/prompt/Feedtoolbar'
 import { InfinitePromptGrid } from '@/components/prompt/InfinitePromptGrid'
 import { EmptyState } from '@/components/admin/EmptyState'
 
-export const revalidate = 60
+export const revalidate = 3660
 const PAGE_SIZE = 24
 
 // The homepage is the canonical root. Filter/sort params (?category, ?model,
