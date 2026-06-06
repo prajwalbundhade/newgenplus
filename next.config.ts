@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     // Allow next/image to optimize images served from Supabase Storage.
+    unoptimized: true,
     // Hostname is derived from NEXT_PUBLIC_SUPABASE_URL (validated in env.ts).
     remotePatterns: [
       {
