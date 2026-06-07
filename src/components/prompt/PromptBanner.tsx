@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Camera, Sparkles, SendHorizontal, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SubmitPromptModal } from './SubmitPromptModal'
 
 const BANNERS = [
     {
@@ -29,7 +31,7 @@ const BANNERS = [
         eyebrow: 'Contribute',
         heading: 'Submit your best prompt',
         body: 'Got a prompt that slaps? Share it with the community and get featured on the homepage.',
-        cta: { label: 'Submit a prompt', href: '/submit' },
+        cta: { label: 'Submit a prompt', modal: true },
         theme: 'white',
     },
 ] as const
@@ -61,16 +63,27 @@ const themes = {
     },
 }
 
-function BannerCard({ card }: { card: typeof BANNERS[number] }) {
-    const t = themes[card.theme]
+type BannerCard = typeof BANNERS[number]
 
-    const content = (
+function BannerCardContent({
+    card,
+    onSubmitClick,
+}: {
+    card: BannerCard
+    onSubmitClick: () => void
+}) {
+    const t = themes[card.theme]
+    const cta = card.cta as { label: string; modal?: boolean; href?: string; external?: boolean }
+
+    const cardDiv = (
         <div
             className={cn(
                 'group relative flex w-[72vw] shrink-0 snap-start flex-col justify-between gap-2 rounded-xl border p-3 sm:w-[55vw] sm:gap-4 sm:p-5 lg:w-auto transition-transform duration-200 hover:-translate-y-0.5',
+                cta.modal && 'cursor-pointer',
                 t.wrapper,
                 t.border
             )}
+            onClick={cta.modal ? onSubmitClick : undefined}
         >
             {/* Top: icon + eyebrow */}
             <div className="flex items-start justify-between">
@@ -98,30 +111,48 @@ function BannerCard({ card }: { card: typeof BANNERS[number] }) {
                         t.cta
                     )}
                 >
-                    {card.cta.label}
+                    {cta.label}
                     <ArrowRight size={11} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                 </span>
             </div>
         </div>
     )
 
-    return (card.cta as any).external ? (
-        <a href={card.cta.href} target="_blank" rel="noopener noreferrer" className="contents">
-            {content}
-        </a>
-    ) : (
-        <Link href={card.cta.href} className="contents">
-            {content}
+    if (cta.modal) {
+        return cardDiv
+    }
+
+    if (cta.external) {
+        return (
+            <a href={cta.href} target="_blank" rel="noopener noreferrer" className="contents">
+                {cardDiv}
+            </a>
+        )
+    }
+
+    return (
+        <Link href={cta.href!} className="contents">
+            {cardDiv}
         </Link>
     )
 }
 
 export function PromoBanners() {
+    const [submitOpen, setSubmitOpen] = useState(false)
+
     return (
-        <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:gap-4 lg:grid lg:grid-cols-3 lg:overflow-visible lg:snap-none">
-            {BANNERS.map((card) => (
-                <BannerCard key={card.id} card={card} />
-            ))}
-        </div>
+        <>
+            <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:gap-4 lg:grid lg:grid-cols-3 lg:overflow-visible lg:snap-none">
+                {BANNERS.map((card) => (
+                    <BannerCardContent
+                        key={card.id}
+                        card={card}
+                        onSubmitClick={() => setSubmitOpen(true)}
+                    />
+                ))}
+            </div>
+
+            <SubmitPromptModal open={submitOpen} onClose={() => setSubmitOpen(false)} />
+        </>
     )
 }
