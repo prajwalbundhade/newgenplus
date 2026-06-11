@@ -10,7 +10,7 @@
 import { revalidatePath } from 'next/cache'
 import { guardAdmin } from '@/lib/auth-guard'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { selectOne, writePayload } from '@/lib/supabase/query'
+import { selectMaybeOne, selectOne, writePayload } from '@/lib/supabase/query'
 import { type ActionResult, ok, fail } from '@/lib/action-result'
 import { slugify } from '@/lib/utils/slug'  // ← changed from uniqueSlug to slugify
 import {
@@ -19,13 +19,22 @@ import {
 } from '@/features/admin/schemas/taxonomy.schema'
 import type { ModelRow } from '@/types/database.types'
 
-function revalidateModelSurfaces() {
-  revalidatePath('/admin/models')
-  revalidatePath('/admin')
-  revalidatePath('/')
-  revalidatePath('/sitemap.xml')
-  revalidatePath('/sitemap-index.xml')
-  revalidatePath('/model/sitemap.xml')
+type ModelRevalidationInfo = Pick<ModelRow, 'slug' | 'status'>
+
+function revalidateModelPublicSurfaces(
+  ...models: Array<ModelRevalidationInfo | null | undefined>
+) {
+  const publishedModels = models.filter(
+    (model): model is ModelRevalidationInfo => model?.status === 'published'
+  )
+
+  if (publishedModels.length === 0) return
+
+  const paths = new Set<string>(['/'])
+  for (const model of publishedModels) {
+    paths.add(`/model/${model.slug}`)
+  }
+  for (const path of paths) revalidatePath(path)
 }
 
 function formToObject(formData: FormData) {
@@ -88,7 +97,7 @@ export async function createModel(
         .select('*')
         .single()
     )
-    revalidateModelSurfaces()
+    revalidateModelPublicSurfaces(created)
     return ok({ id: created.id })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to create model.')
@@ -120,10 +129,15 @@ export async function updateModel(
   }
 
   try {
+    const current = await selectMaybeOne<ModelRevalidationInfo>(
+      supabase.from('models').select('slug,status').eq('id', id).maybeSingle()
+    )
+    if (!current) return fail('Model not found.')
+
     const updated = await selectOne<ModelRow>(
       supabase.from('models').update(writePayload(update)).eq('id', id).select('*').single()
     )
-    revalidateModelSurfaces()
+    revalidateModelPublicSurfaces(current, updated)
     return ok({ id: updated.id })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to update model.')
@@ -135,9 +149,14 @@ export async function deleteModel(id: string): Promise<ActionResult<void>> {
   const supabase = createAdminClient()
 
   try {
+    const current = await selectMaybeOne<ModelRevalidationInfo>(
+      supabase.from('models').select('slug,status').eq('id', id).maybeSingle()
+    )
+    if (!current) return fail('Model not found.')
+
     const { error } = await supabase.from('models').delete().eq('id', id)
     if (error) return fail(error.message)
-    revalidateModelSurfaces()
+    revalidateModelPublicSurfaces(current)
     return ok(undefined)
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to delete model.')

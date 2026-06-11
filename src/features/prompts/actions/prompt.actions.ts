@@ -9,7 +9,7 @@
  * than relying on table policies. The service-role client never reaches the
  * browser (server-only module).
  *
- * All actions return a typed ActionResult and revalidate affected paths.
+ * All actions return a typed ActionResult and revalidate affected public ISR paths.
  */
 
 import { revalidatePath } from 'next/cache'
@@ -25,20 +25,73 @@ import {
   PromptUpdateSchema,
 } from '@/features/prompts/schemas/prompt.schema'
 import { optimizeImage } from '@/lib/server/image-optimizer'
-import type { ResourceRow, ResourceMediaRow } from '@/types/database.types'
+import type {
+  CategoryRow,
+  ModelRow,
+  ResourceRow,
+  ResourceMediaRow,
+} from '@/types/database.types'
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Public ISR helpers
 // ---------------------------------------------------------------------------
 
-function revalidatePromptSurfaces(slug?: string) {
-  revalidatePath('/admin/prompts')
-  revalidatePath('/admin')
-  revalidatePath('/') // homepage discovery grid
-  revalidatePath('/sitemap.xml')
-  revalidatePath('/sitemap-index.xml')
-  revalidatePath('/prompt/sitemap/0.xml')
-  if (slug) revalidatePath(`/prompt/${slug}`)
+type PromptRevalidationInfo = Pick<
+  ResourceRow,
+  'slug' | 'status' | 'category_id' | 'model_id' | 'published_at'
+>
+
+async function getPromptRevalidationInfo(id: string): Promise<PromptRevalidationInfo | null> {
+  const supabase = createAdminClient()
+  return selectMaybeOne<PromptRevalidationInfo>(
+    supabase
+      .from('resources')
+      .select('slug,status,category_id,model_id,published_at')
+      .eq('id', id)
+      .maybeSingle()
+  )
+}
+
+async function addTaxonomyPaths(paths: Set<string>, resource: PromptRevalidationInfo) {
+  const supabase = createAdminClient()
+  const [category, model] = await Promise.all([
+    resource.category_id
+      ? selectMaybeOne<Pick<CategoryRow, 'slug' | 'status'>>(
+        supabase.from('categories').select('slug,status').eq('id', resource.category_id).maybeSingle()
+      )
+      : null,
+    resource.model_id
+      ? selectMaybeOne<Pick<ModelRow, 'slug' | 'status'>>(
+        supabase.from('models').select('slug,status').eq('id', resource.model_id).maybeSingle()
+      )
+      : null,
+  ])
+
+  if (category?.status === 'published') paths.add(`/category/${category.slug}`)
+  if (model?.status === 'published') paths.add(`/model/${model.slug}`)
+}
+
+async function revalidatePromptPublicSurfaces(
+  ...resources: Array<PromptRevalidationInfo | null | undefined>
+) {
+  const publishedResources = resources.filter(
+    (resource): resource is PromptRevalidationInfo => resource?.status === 'published'
+  )
+
+  if (publishedResources.length === 0) return
+
+  const paths = new Set<string>(['/'])
+
+  for (const resource of publishedResources) {
+    paths.add(`/prompt/${resource.slug}`)
+    await addTaxonomyPaths(paths, resource)
+  }
+
+  for (const path of paths) revalidatePath(path)
+}
+
+function revalidateHomepageForPublishedPrompt(resource: PromptRevalidationInfo | null) {
+  if (resource?.status === 'published') revalidatePath('/')
 }
 
 /** Parse FormData into a plain object the Zod schema accepts. */
@@ -107,7 +160,7 @@ export async function createPrompt(
         .single()
     )
 
-    revalidatePromptSurfaces(created.slug)
+    await revalidatePromptPublicSurfaces(created)
     return ok({ id: created.id, slug: created.slug })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to create prompt.')
@@ -138,8 +191,12 @@ export async function updatePrompt(
 
   try {
     // Load current row to handle published_at transition correctly.
-    const current = await selectMaybeOne<Pick<ResourceRow, 'status' | 'published_at' | 'slug'>>(
-      supabase.from('resources').select('status,published_at,slug').eq('id', id).single()
+    const current = await selectMaybeOne<PromptRevalidationInfo>(
+      supabase
+        .from('resources')
+        .select('slug,status,category_id,model_id,published_at')
+        .eq('id', id)
+        .maybeSingle()
     )
     if (!current) return fail('Prompt not found.')
 
@@ -167,8 +224,7 @@ export async function updatePrompt(
       supabase.from('resources').update(writePayload(update)).eq('id', id).select('*').single()
     )
 
-    revalidatePromptSurfaces(updated.slug)
-    if (current.slug !== updated.slug) revalidatePath(`/prompt/${current.slug}`)
+    await revalidatePromptPublicSurfaces(current, updated)
     return ok({ id: updated.id, slug: updated.slug })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to update prompt.')
@@ -187,9 +243,7 @@ export async function setPromptStatus(
   const supabase = createAdminClient()
 
   try {
-    const current = await selectMaybeOne<Pick<ResourceRow, 'published_at'>>(
-      supabase.from('resources').select('published_at').eq('id', id).single()
-    )
+    const current = await getPromptRevalidationInfo(id)
     if (!current) return fail('Prompt not found.')
 
     const update: Record<string, unknown> = { status }
@@ -197,11 +251,16 @@ export async function setPromptStatus(
       update.published_at = new Date().toISOString()
     }
 
-    await selectOne<ResourceRow>(
-      supabase.from('resources').update(writePayload(update)).eq('id', id).select('id').single()
+    const updated = await selectOne<PromptRevalidationInfo>(
+      supabase
+        .from('resources')
+        .update(writePayload(update))
+        .eq('id', id)
+        .select('slug,status,category_id,model_id,published_at')
+        .single()
     )
 
-    revalidatePromptSurfaces()
+    await revalidatePromptPublicSurfaces(current, updated)
     return ok(undefined)
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to change status.')
@@ -220,15 +279,15 @@ export async function toggleFeatured(
   const supabase = createAdminClient()
 
   try {
-    await selectOne<ResourceRow>(
+    const updated = await selectOne<PromptRevalidationInfo>(
       supabase
         .from('resources')
         .update(writePayload({ is_featured: isFeatured }))
         .eq('id', id)
-        .select('id')
+        .select('slug,status,category_id,model_id,published_at')
         .single()
     )
-    revalidatePromptSurfaces()
+    revalidateHomepageForPublishedPrompt(updated)
     return ok(undefined)
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to toggle featured.')
@@ -244,6 +303,8 @@ export async function deletePrompt(id: string): Promise<ActionResult<void>> {
   const supabase = createAdminClient()
 
   try {
+    const current = await getPromptRevalidationInfo(id)
+
     // Remove the storage objects first (best-effort), then the row.
     // resource_media cascades on resource delete, but storage objects do not.
     const media = await selectMaybeOne<Pick<ResourceMediaRow, 'storage_bucket' | 'storage_path' | 'thumbnail_path'>>(
@@ -263,7 +324,7 @@ export async function deletePrompt(id: string): Promise<ActionResult<void>> {
     const { error } = await supabase.from('resources').delete().eq('id', id)
     if (error) return fail(error.message)
 
-    revalidatePromptSurfaces()
+    await revalidatePromptPublicSurfaces(current)
     return ok(undefined)
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to delete prompt.')
@@ -386,7 +447,7 @@ export async function attachPromptImage(
       }
     }
 
-    revalidatePromptSurfaces()
+    await revalidatePromptPublicSurfaces(await getPromptRevalidationInfo(resourceId))
     return ok({ path: fullPath })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to attach image.')

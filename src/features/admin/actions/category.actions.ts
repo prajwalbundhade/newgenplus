@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { guardAdmin } from '@/lib/auth-guard'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { selectOne, writePayload } from '@/lib/supabase/query'
+import { selectMaybeOne, selectOne, writePayload } from '@/lib/supabase/query'
 import { type ActionResult, ok, fail } from '@/lib/action-result'
 import { slugify } from '@/lib/utils/slug'  // ← changed from uniqueSlug to slugify
 import {
@@ -12,13 +12,22 @@ import {
 } from '@/features/admin/schemas/taxonomy.schema'
 import type { CategoryRow } from '@/types/database.types'
 
-function revalidateCategorySurfaces() {
-  revalidatePath('/admin/categories')
-  revalidatePath('/admin')
-  revalidatePath('/')
-  revalidatePath('/sitemap.xml')
-  revalidatePath('/sitemap-index.xml')
-  revalidatePath('/category/sitemap.xml')
+type CategoryRevalidationInfo = Pick<CategoryRow, 'slug' | 'status'>
+
+function revalidateCategoryPublicSurfaces(
+  ...categories: Array<CategoryRevalidationInfo | null | undefined>
+) {
+  const publishedCategories = categories.filter(
+    (category): category is CategoryRevalidationInfo => category?.status === 'published'
+  )
+
+  if (publishedCategories.length === 0) return
+
+  const paths = new Set<string>(['/'])
+  for (const category of publishedCategories) {
+    paths.add(`/category/${category.slug}`)
+  }
+  for (const path of paths) revalidatePath(path)
 }
 
 function formToObject(formData: FormData) {
@@ -81,7 +90,7 @@ export async function createCategory(
         .select('*')
         .single()
     )
-    revalidateCategorySurfaces()
+    revalidateCategoryPublicSurfaces(created)
     return ok({ id: created.id })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to create category.')
@@ -113,10 +122,15 @@ export async function updateCategory(
   }
 
   try {
+    const current = await selectMaybeOne<CategoryRevalidationInfo>(
+      supabase.from('categories').select('slug,status').eq('id', id).maybeSingle()
+    )
+    if (!current) return fail('Category not found.')
+
     const updated = await selectOne<CategoryRow>(
       supabase.from('categories').update(writePayload(update)).eq('id', id).select('*').single()
     )
-    revalidateCategorySurfaces()
+    revalidateCategoryPublicSurfaces(current, updated)
     return ok({ id: updated.id })
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to update category.')
@@ -128,9 +142,14 @@ export async function deleteCategory(id: string): Promise<ActionResult<void>> {
   const supabase = createAdminClient()
 
   try {
+    const current = await selectMaybeOne<CategoryRevalidationInfo>(
+      supabase.from('categories').select('slug,status').eq('id', id).maybeSingle()
+    )
+    if (!current) return fail('Category not found.')
+
     const { error } = await supabase.from('categories').delete().eq('id', id)
     if (error) return fail(error.message)
-    revalidateCategorySurfaces()
+    revalidateCategoryPublicSurfaces(current)
     return ok(undefined)
   } catch (err) {
     return fail(err instanceof Error ? err.message : 'Failed to delete category.')
